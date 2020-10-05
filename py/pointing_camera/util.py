@@ -29,9 +29,11 @@ def load_exposure_image(fname):
 
     assert(os.path.exists(fname))
 
-    print('Attempting to load exposure : ' + fname)
+    print('Attempting to read exposure : ' + fname)
 
     im, h = fits.getdata(fname, header=True)
+
+    print('Successfully read raw pointing camera image file')
 
     return im, h
 
@@ -49,3 +51,26 @@ def check_image_dimensions(image):
     assert(sh[1] == par['nx'])
     
     print('Raw pointing camera image has correct dimensions')
+
+def get_exptime(h_im, milliseconds=False):
+    # h_im should be a header of a raw pointing camera image
+
+    if 'EXPOSURE' in h_im:
+        exptime_ms = h_im['EXPOSURE']
+    elif 'EXPTIME' in h_im:
+        exptime_ms = h_im['EXPTIME']
+    else:
+        print('Could not find an exposure time in the raw image header!')
+        assert(False)
+
+    exptime_ms = float(exptime_ms)
+
+    # think that for El Nino this ais ctually impossible since neither
+    # readout mode offers 0 ms exposure times...
+    assert(exptime_ms != 0)
+
+    print('Exposure time is ' + str(round(exptime_ms)) + ' ms')
+    if milliseconds:
+        return exptime_ms
+    else:
+        return exptime_ms/1000.0

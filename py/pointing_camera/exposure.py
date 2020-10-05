@@ -28,5 +28,8 @@ class PC_exposure:
         
         # wcs object
         self.wcs = wcs
+
+        # exposure time in seconds
+        self.time_seconds = util.get_exptime(self.header)
         
         self.detrended = False
