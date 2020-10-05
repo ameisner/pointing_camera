@@ -110,6 +110,26 @@ def quad_pix_limits(quad):
 
     return result
 
+def subtract_dark_current(im, time_seconds):
+
+    print('Subtracting dark current')
+
+    assert(time_seconds < 30)
+
+    par = common.pc_params()
+
+    result = im.astype(float)
+
+    for q in [1, 2, 3, 4]:
+        dark_adu = par['dark_adu_per_s_quad'][q-1]*time_seconds
+        print('quadrant : ', q, ', dark counts/pix : ', dark_adu)
+
+        p = quad_pix_limits(q)
+
+        result[p['ymin']:p['ymax'], p['xmin']:p['xmax']] -= dark_adu
+
+    return result
+
 def subtract_quad_offs(im):
     par = common.pc_params()
 
@@ -140,6 +160,8 @@ def detrend_pc(exp):
     im = exp.raw_image.astype(float)
 
     im = subtract_quad_offs(im)
+
+    im = subtract_dark_current(im, exp.time_seconds)
 
     exp.is_detrended = True
 
