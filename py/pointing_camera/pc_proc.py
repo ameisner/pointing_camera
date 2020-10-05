@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime
 import os
 import time
+from exposure import PC_exposure
 
 def pc_proc(fname_in):
 
@@ -19,6 +20,8 @@ def pc_proc(fname_in):
 
     assert(os.path.exists(fname_in))
 
+    exp = PC_exposure(fname_in)
+
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
           ' seconds')
@@ -30,7 +33,8 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description=descr)
 
-    parser.add_argument('fname_in', type=str, nargs=1)
+    parser.add_argument('fname_in', type=str, nargs=1,
+                        help='pointing camera raw image file name')
 
     args = parser.parse_args()
     
