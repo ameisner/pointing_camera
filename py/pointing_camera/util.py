@@ -2,6 +2,8 @@ import astropy.io.fits as fits
 from astropy import wcs
 import os
 import common
+import pointing_camera.io as io
+import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -145,6 +147,15 @@ def subtract_quad_offs(im):
 
     return im
 
+def badpix_interp(im):
+    # interpolate over static badpixels
+
+    mask = io.load_static_badpix()
+
+    result = djs_maskinterp.average_bilinear(im, (mask != 0))
+
+    return result
+
 def detrend_pc(exp):
     # exp is a PC_exposure object
 
@@ -162,6 +173,8 @@ def detrend_pc(exp):
     im = subtract_quad_offs(im)
 
     im = subtract_dark_current(im, exp.time_seconds)
+
+    im = badpix_interp(im)
 
     exp.is_detrended = True
 
