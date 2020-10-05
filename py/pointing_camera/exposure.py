@@ -7,6 +7,8 @@ class PC_exposure:
 
         im, h = util.load_exposure_image(fname_im)
 
+        util.check_image_dimensions(im)
+        
         # image file name
         self.fname_im = fname_im
 
