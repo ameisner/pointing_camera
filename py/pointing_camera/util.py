@@ -74,3 +74,10 @@ def get_exptime(h_im, milliseconds=False):
         return exptime_ms
     else:
         return exptime_ms/1000.0
+
+def _check_bitpix(h_im):
+    par = common.pc_params()
+
+    print('Checking raw image BITPIX value')
+
+    assert(h_im['BITPIX'] == par['bitpix'])
