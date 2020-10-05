@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import time
 from exposure import PC_exposure
+import pointing_camera.util as util
 
 def pc_proc(fname_in):
 
@@ -21,6 +22,8 @@ def pc_proc(fname_in):
     assert(os.path.exists(fname_in))
 
     exp = PC_exposure(fname_in)
+
+    util.detrend_pc(exp)
 
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +

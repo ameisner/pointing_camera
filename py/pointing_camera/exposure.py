@@ -15,7 +15,7 @@ class PC_exposure:
         self.fname_im = fname_im
 
         # pixel data
-        self.image = im
+        self.raw_image = im
         
         # image header
         self.header = h
@@ -34,4 +34,4 @@ class PC_exposure:
         # exposure time in seconds
         self.time_seconds = util.get_exptime(self.header)
         
-        self.detrended = False
+        self.is_detrended = False
