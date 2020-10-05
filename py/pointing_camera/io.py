@@ -16,7 +16,7 @@ def write_image_level_outputs(exp, outdir):
     
     outname_tmp = outname + '.tmp'
 
-    fitsio.write(outname_tmp, exp.detrended)
+    fitsio.write(outname_tmp, exp.detrended.astype('float32'))
     os.rename(outname_tmp, outname)
 
     
