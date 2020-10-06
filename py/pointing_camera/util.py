@@ -227,3 +227,10 @@ def sky_summary_table(exp):
     t['inter_quad_rms_adu_per_s'] = [rms_adu/exp.time_seconds]
 
     return t
+
+def _validate_ctype(wcs):
+    # wcs should be an astropy WCS object
+
+    valid_ctypes = ['RA---TAN', 'DEC--TAN', 'RA---TAN-SIP', 'DEC--TAN-SIP']
+    for ctype in wcs.wcs.ctype:
+        assert(ctype in valid_ctypes)

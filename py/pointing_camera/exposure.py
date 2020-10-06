@@ -25,6 +25,8 @@ class PC_exposure:
         
         wcs, wcs_header = util.load_wcs(self.fname_wcs)
 
+        util._validate_ctype(wcs)
+
         # wcs_header
         self.wcs_header = wcs_header
         
