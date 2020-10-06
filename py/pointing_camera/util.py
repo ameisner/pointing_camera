@@ -246,6 +246,22 @@ def max_gaia_mag(time_seconds):
 
     return val
 
+def xy_subsamp_grid():
+    # the values hardcoded here are going to give me problems
+    # when trying to run on data with different dimensions e.g., la Nina
+
+    x = np.arange(104)*32
+    y = np.arange(104)*24
+
+    xgrid, ygrid = np.meshgrid(x, y)
+
+    return xgrid, ygrid
+
+def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0):
+    # wcs should be an astropy WCS object
+
+    print('Reading Gaia DR2 catalogs...')
+
 def pc_phot(exp):
     # main photometry driver; exp is a PC_exposure object
 
