@@ -4,6 +4,8 @@ import os
 import common
 import pointing_camera.io as io
 import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
+from astropy.table import Table
+import numpy as np
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -112,6 +114,19 @@ def quad_pix_limits(quad):
 
     return result
 
+def get_quadrant(im, q):
+    assert(q in [1, 2, 3, 4])
+
+    check_image_dimensions(im)
+
+    par = common.pc_params()
+
+    p = quad_pix_limits(q)
+
+    quad = im[p['ymin']:p['ymax'], p['xmin']:p['xmax']]
+
+    return quad
+
 def subtract_dark_current(im, time_seconds):
 
     print('Subtracting dark current')
@@ -181,3 +196,34 @@ def detrend_pc(exp):
     exp.detrended = im
 
     print('Finished detrending the raw pointing camera image')
+
+def sky_summary_table(exp):
+
+    print('Computing sky background statistics')
+
+    med = np.median(exp.detrended)
+
+    t = Table()
+
+    t['median_adu'] = [med]
+    t['median_adu_per_s'] = [med/exp.time_seconds]
+    t['time_seconds'] = [exp.time_seconds]
+    t['fname_raw'] = [exp.fname_im]
+
+    qmeds = []
+    for q in [1, 2, 3, 4]:
+        qmed = np.median(get_quadrant(exp.detrended, q))
+        qmeds.append(qmed)
+        
+        t['median_adu_quad' + str(q)] = [qmed]
+
+        t['median_adu_quad' + str(q) + '_per_s'] = [qmed/exp.time_seconds]
+
+    diff = np.array(qmeds) - np.median(qmeds)
+
+    rms_adu = np.sqrt(np.mean(np.power(diff, 2)))
+
+    t['inter_quad_rms_adu'] = [rms_adu]
+    t['inter_quad_rms_adu_per_s'] = [rms_adu/exp.time_seconds]
+
+    return t

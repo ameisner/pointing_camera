@@ -17,7 +17,30 @@ def write_image_level_outputs(exp, outdir):
     
     outname_tmp = outname + '.tmp'
 
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
+    
     fitsio.write(outname_tmp, exp.detrended.astype('float32'))
+    os.rename(outname_tmp, outname)
+
+def write_sky_summary(sky, exp, outdir):
+
+    print('Attempting to write sky summary table')
+
+    assert(os.path.exists(outdir))
+
+    outname = (os.path.split(exp.fname_im))[-1]
+
+    outname = outname.replace('.fits', '-sky.fits')
+
+    outname = os.path.join(outdir, outname)
+    
+    outname_tmp = outname + '.tmp'
+
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
+    
+    sky.write(outname_tmp, format='fits')
     os.rename(outname_tmp, outname)
 
 def load_static_badpix():

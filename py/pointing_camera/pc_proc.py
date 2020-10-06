@@ -28,11 +28,14 @@ def pc_proc(fname_in, outdir=None):
 
     util.detrend_pc(exp)
 
+    sky = util.sky_summary_table(exp)
+    
     if write_outputs:
         if not os.path.exists(outdir):
             os.mkdir(outdir)
 
         io.write_image_level_outputs(exp, outdir)
+        io.write_sky_summary(sky, exp, outdir)
     
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
