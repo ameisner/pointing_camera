@@ -234,3 +234,19 @@ def _validate_ctype(wcs):
     valid_ctypes = ['RA---TAN', 'DEC--TAN', 'RA---TAN-SIP', 'DEC--TAN-SIP']
     for ctype in wcs.wcs.ctype:
         assert(ctype in valid_ctypes)
+
+def max_gaia_mag(time_seconds):
+    # trying to make this work for both array and scalar inputs
+
+    fac = 1.21
+
+    val = 15.5 + 2.5*np.log10(time_seconds/26.0)*fac
+
+    val = np.minimum(np.maximum(val, 10), 15.5)
+
+    return val
+
+def pc_phot(exp):
+    # main photometry driver; exp is a PC_exposure object
+
+    mag_thresh = max_gaia_mag(exp.time_seconds)
