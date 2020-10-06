@@ -12,6 +12,7 @@ def pc_params():
            'dark_adu_per_s_quad': [0.096094832, 0.099679574, 0.083682373,
                                    0.083619997],
            'meta_env_var' : 'POINTING_CAMERA_META',
-           'static_mask_filename' : 'pc_badpix_mask.fits.gz'}
+           'static_mask_filename' : 'pc_badpix_mask.fits.gz',
+           'gaia_env_var' : 'PC_GAIA_DIR'}
 
     return par

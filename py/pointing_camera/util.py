@@ -6,6 +6,7 @@ import pointing_camera.io as io
 import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
 from astropy.table import Table
 import numpy as np
+from pointing_camera.gaia import read_gaia_cat
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -261,6 +262,37 @@ def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0):
     # wcs should be an astropy WCS object
 
     print('Reading Gaia DR2 catalogs...')
+
+    xgrid, ygrid = xy_subsamp_grid()
+
+    # last arg is 0 rather than 1 because that's what agrees with IDL
+    ra, dec = wcs.all_pix2world(xgrid, ygrid, 0)
+
+    cat = read_gaia_cat(ra, dec)
+
+    if mag_thresh is not None:
+        keep = (cat['PHOT_G_MEAN_MAG'] <= mag_thresh)
+        assert(np.sum(keep) > 0)
+        cat = cat[keep]
+
+    x_gaia_guess, y_gaia_guess = wcs.all_world2pix(cat['RA'], cat['DEC'], 0)
+
+    par = common.pc_params()
+
+    keep  = (x_gaia_guess > edge_pad_pix) & (y_gaia_guess > edge_pad_pix) & (x_gaia_guess < (par['nx'] - 1 - edge_pad_pix)) & (y_gaia_guess < (par['ny'] - 1 - edge_pad_pix))
+
+    assert(np.sum(keep) > 0)
+
+    cat = cat[keep]
+
+    x_gaia_guess = x_gaia_guess[keep]
+    y_gaia_guess = y_gaia_guess[keep]
+
+    cat = Table(cat)
+    cat['x_gaia_guess'] = x_gaia_guess
+    cat['y_gaia_guess'] = y_gaia_guess
+
+    return cat
 
 def pc_phot(exp):
     # main photometry driver; exp is a PC_exposure object
