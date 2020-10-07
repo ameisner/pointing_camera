@@ -408,6 +408,14 @@ def pc_aper_phot(im, cat):
     cat['sky_annulus_area_pix'] = _get_area_from_ap(annulus_apertures)
     cat['sky_annulus_median'] = bkg_median
 
+def get_g_prime(G, BP_RP):
+    # right now this is pretty much trivial but in the future it
+    # could become more complex
+
+    g_prime = G + 0.25*BP_RP
+
+    return g_prime
+
 def pc_phot(exp):
     # main photometry driver; exp is a PC_exposure object
 
@@ -425,5 +433,7 @@ def pc_phot(exp):
 
     # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']
+
+    cat['G_PRIME'] = get_g_prime(cat['PHOT_G_MEAN_MAG'], cat['BP_RP'])
 
     return cat
