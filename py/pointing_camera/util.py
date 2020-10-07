@@ -500,4 +500,6 @@ def pc_phot(exp):
     cat['min_edge_dist_pix'] = _loop_min_edge_dist_pix(cat['xcentroid'],
                                                        cat['ycentroid'])
 
+    cat['flux_adu_per_s'] = cat['flux_adu']/exp.time_seconds
+
     return cat
