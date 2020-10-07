@@ -4,9 +4,11 @@ import os
 import common
 import pointing_camera.io as io
 import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
-from astropy.table import Table
+from astropy.table import Table, hstack
 import numpy as np
 from pointing_camera.gaia import read_gaia_cat
+import time
+from pointing_camera.analysis.djs_photcen import djs_photcen
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -294,7 +296,78 @@ def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0):
 
     return cat
 
+def pc_recentroid(im, cat):
+    par = common.pc_params()
+
+    im = im.astype(float)
+
+    x_center = par['nx']/2 + 0.5
+    y_center = par['ny']/2 + 0.5
+
+    dist_pix = np.sqrt(np.power(cat['x_gaia_guess'] - x_center, 2) + \
+                       np.power(cat['y_gaia_guess'] - y_center, 2))
+
+    dist_max = np.sqrt(x_center**2 + y_center**2)
+
+    slope = 2.0/dist_max
+
+    cmaxshift = np.minimum(np.maximum(dist_pix*slope + 2.5, 2.5), 4.5)
+
+    assert(np.sum(cmaxshift < 2.5) == 0)
+    assert(np.sum(cmaxshift > 4.5) == 0)
+
+    xcen = np.zeros(len(cat), dtype=float)
+    ycen = np.zeros(len(cat), dtype=float)
+
+    qmaxshift = np.zeros(len(cat), dtype=int)
+
+    print('Recentroiding...')
+    for i in range(len(cat)):
+        _xcen, _ycen, q = djs_photcen(cat['x_gaia_guess'][i],
+                                      cat['y_gaia_guess'][i], im, cbox=8,
+                                      cmaxiter=10, cmaxshift=cmaxshift[i])
+        xcen[i] = _xcen
+        ycen[i] = _ycen
+        qmaxshift[i] = q
+
+    result = Table()
+
+    result['xcentroid'] = xcen
+    result['ycentroid'] = ycen
+    result['x_shift'] = xcen - cat['x_gaia_guess']
+    result['y_shift'] = ycen - cat['y_gaia_guess']
+    result['cmaxshift'] = cmaxshift
+    result['qmaxshift'] = qmaxshift
+
+    result['centroid_shift_flag'] = (np.abs(result['x_shift']) > cmaxshift) | (np.abs(result['y_shift']) > cmaxshift) | (qmaxshift != 0)
+
+    wrong_source_centroid = np.zeros(len(result), dtype=bool)
+
+    print('Attempting to flag wrong centroids...')
+
+    t0 = time.time()
+    for i in range(len(result)):
+        _dist = np.sqrt(np.power(cat['x_gaia_guess'] - result['xcentroid'][i], 2) + np.power(cat['y_gaia_guess'] - result['ycentroid'][i], 2))
+        indmin = np.argmin(_dist)
+        wrong_source_centroid[i] = (indmin != i)
+
+    dt = time.time()-t0
+
+    result['wrong_source_centroid'] = wrong_source_centroid.astype(int)
+
+    return result
+
 def pc_phot(exp):
     # main photometry driver; exp is a PC_exposure object
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
+
+    cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh)
+
+    centroids = pc_recentroid(exp.detrended, cat)
+
+    assert(len(centroids) == len(cat))
+
+    cat = hstack([cat, centroids])
+
+    return cat
