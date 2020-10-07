@@ -19,3 +19,17 @@ This produces the following output files:
 * The -zp output is a checkplot of instrumental magnitudes versus color-corrected Gaia G.
 * The -detrended output is a detrended version of the raw pointing camera image.
 * The -zeropoints output is a summary table of zeropoints (for several apertures and different image regions).
+
+# full help for running the pipeline
+
+    pointing_camera/py/pointing_camera> python pc_proc.py --help
+    usage: pc_proc.py [-h] [--outdir OUTDIR] fname_in
+
+    run the pointing camera reduction pipeline on an exposure
+
+    positional arguments:
+      fname_in         pointing camera raw image file name
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      --outdir OUTDIR  directory to write outputs in
