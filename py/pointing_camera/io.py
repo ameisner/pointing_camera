@@ -1,6 +1,5 @@
 import astropy.io.fits as fits
 import os
-import fitsio
 import pointing_camera.common as common
 import matplotlib.pyplot as plt
 
@@ -20,8 +19,9 @@ def write_image_level_outputs(exp, outdir):
 
     assert(not os.path.exists(outname))
     assert(not os.path.exists(outname_tmp))
-    
-    fitsio.write(outname_tmp, exp.detrended.astype('float32'))
+
+    hdu = fits.PrimaryHDU(exp.detrended.astype('float32'))
+    hdu.writeto(outname_tmp)
     os.rename(outname_tmp, outname)
 
 def write_sky_summary(sky, exp, outdir):
