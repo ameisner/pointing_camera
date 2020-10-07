@@ -63,6 +63,26 @@ def write_source_catalog(cat, exp, outdir):
     cat.write(outname_tmp, format='fits')
     os.rename(outname_tmp, outname)
 
+def write_zeropoints_table(zps, exp, outdir):
+
+    print('Attempting to write zeropoints table')
+
+    assert(os.path.exists(outdir))
+
+    outname = (os.path.split(exp.fname_im))[-1]
+
+    outname = outname.replace('.fits', '-zeropoints.fits')
+
+    outname = os.path.join(outdir, outname)
+
+    outname_tmp = outname + '.tmp'
+
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
+
+    zps.write(outname_tmp, format='fits')
+    os.rename(outname_tmp, outname)
+
 def load_static_badpix():
     par = common.pc_params()
 
