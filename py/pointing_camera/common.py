@@ -18,6 +18,7 @@ def pc_params():
            'gaia_env_var' : 'PC_GAIA_DIR',
            'aper_phot_objrad': 2.0 + 0.5*np.arange(7),
            'annulus_radii' : [12.0, 20.0],
-           'bp_rp_coeff' : 0.25}
+           'bp_rp_coeff' : 0.25,
+           'raw_satur_val': 16383}
 
     return par

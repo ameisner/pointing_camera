@@ -475,6 +475,24 @@ def get_g_prime(G, BP_RP):
 
     return g_prime
 
+def source_raw_pixel_metrics(cat, raw):
+
+    par = common.pc_params()
+
+    ixcen = np.round(cat['xcentroid']).astype(int)
+    iycen = np.round(cat['ycentroid']).astype(int)
+
+    ixcen = np.minimum(np.maximum(ixcen, 0), par['nx']-1)
+    iycen = np.minimum(np.maximum(iycen, 0), par['ny']-1)
+
+    centroid_pixel_vals = raw[iycen, ixcen] # ordering of indices !
+
+    centroid_pixel_saturated = (centroid_pixel_vals == par['raw_satur_val']).astype(int)
+
+    # modify the input catalog
+    cat['centroid_raw_pixel_val'] = centroid_pixel_vals
+    cat['centroid_pixel_saturated'] = centroid_pixel_saturated
+
 def pc_phot(exp):
     # main photometry driver; exp is a PC_exposure object
 
@@ -503,5 +521,7 @@ def pc_phot(exp):
     cat['flux_adu_per_s'] = cat['flux_adu']/exp.time_seconds
 
     cat['m_inst'] = -2.5*np.log10(cat['flux_adu_per_s'])
+
+    source_raw_pixel_metrics(cat, exp.raw_image)
 
     return cat
