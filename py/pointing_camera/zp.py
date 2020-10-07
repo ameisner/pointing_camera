@@ -73,6 +73,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
     # checkplot (eventually make this optional)
     if (quadrant is 0) and (aper_ind is 1):
         plt.cla()
+        plt.figure(1)
         xtitle = 'G + 0.25*(BP-RP)'
         ytitle = '-2.5' + r'$\times$' + 'log' + r'$_{10}$' + '(ADU/sec)'
         title = fname_im.split('/')[-1]

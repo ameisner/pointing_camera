@@ -2,6 +2,7 @@ import astropy.io.fits as fits
 import os
 import fitsio
 import pointing_camera.common as common
+import matplotlib.pyplot as plt
 
 def write_image_level_outputs(exp, outdir):
 
@@ -94,3 +95,26 @@ def load_static_badpix():
     mask = fits.getdata(fname)
 
     return mask
+
+def save_zp_checkplot(exp, outdir):
+
+    print('Attempting to save zeropoint check plot')
+
+    if not plt.fignum_exists(1):
+        return
+
+    assert(os.path.exists(outdir))
+
+    outname = (os.path.split(exp.fname_im))[-1]
+
+    outname = outname.replace('.fits', '-zp.png')
+    outname_tmp = 'tmp.' + outname
+
+    outname = os.path.join(outdir, outname)
+    outname_tmp = os.path.join(outdir, outname_tmp)
+
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
+
+    plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
+    os.rename(outname_tmp, outname)

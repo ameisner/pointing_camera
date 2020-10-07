@@ -43,6 +43,7 @@ def pc_proc(fname_in, outdir=None):
         io.write_sky_summary(sky, exp, outdir)
         io.write_source_catalog(cat, exp, outdir)
         io.write_zeropoints_table(zps, exp, outdir)
+        io.save_zp_checkplot(exp, outdir)
 
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
