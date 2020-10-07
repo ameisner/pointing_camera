@@ -159,7 +159,30 @@ def _loop_quadrant_from_xy(x, y):
     quadrants = [quadrant_from_xy(*c) for c in zip(x, y)]
 
     return np.array(quadrants)
-    
+
+def min_edge_dist_pix(x, y):
+    # minimum distance to any image edge
+    # for now inputs are meant to be scalar, not array/list
+
+    min_edge_dist = 20000
+
+    par = common.pc_params()
+
+    min_edge_dist = min(min_edge_dist, x + 0.5)
+    min_edge_dist = min(min_edge_dist, y + 0.5)
+    min_edge_dist = min(min_edge_dist, par['nx'] - 0.5 - x)
+    min_edge_dist = min(min_edge_dist, par['ny'] - 0.5 - y)
+
+    return min_edge_dist
+
+def _loop_min_edge_dist_pix(x, y):
+
+    assert(len(x) == len(y))
+
+    _dists = [min_edge_dist_pix(*c) for c in zip(x, y)]
+
+    return _dists
+
 def subtract_dark_current(im, time_seconds):
 
     print('Subtracting dark current')
@@ -464,5 +487,8 @@ def pc_phot(exp):
     cat['G_PRIME'] = get_g_prime(cat['PHOT_G_MEAN_MAG'], cat['BP_RP'])
 
     cat['quadrant'] = _loop_quadrant_from_xy(cat['xcentroid'], cat['ycentroid'])
+
+    cat['min_edge_dist_pix'] = _loop_min_edge_dist_pix(cat['xcentroid'],
+                                                       cat['ycentroid'])
 
     return cat
