@@ -458,6 +458,13 @@ def pc_aper_phot(im, cat):
     cat['sky_annulus_area_pix'] = _get_area_from_ap(annulus_apertures)
     cat['sky_annulus_median'] = bkg_median
 
+    flux_adu = np.zeros((len(cat), len(radii)), dtype=float)
+
+    for i in range(len(radii)):
+        flux_adu[:, i] = cat['aper_sum_bkgsub_' + str(i)]
+
+    cat['flux_adu'] = flux_adu
+
 def get_g_prime(G, BP_RP):
     # right now this is pretty much trivial but in the future it
     # could become more complex
