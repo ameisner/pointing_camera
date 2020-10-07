@@ -502,4 +502,6 @@ def pc_phot(exp):
 
     cat['flux_adu_per_s'] = cat['flux_adu']/exp.time_seconds
 
+    cat['m_inst'] = -2.5*np.log10(cat['flux_adu_per_s'])
+
     return cat
