@@ -133,6 +133,33 @@ def get_quadrant(im, q):
 
     return quad
 
+def quadrant_from_xy(x, y):
+    # right now not meant to be vectorized...
+
+    par = common.pc_params()
+
+    half_x = par['nx']/2 - 0.5
+    half_y = par['ny']/2 - 0.5
+
+    if (x <= half_x) & (y <= half_y):
+        return 3
+    if (x <= half_x) & (y > half_y):
+        return 2
+    if (x > half_x) & (y <= half_y):
+        return 4
+    if (x > half_x) & (y > half_y):
+        return 1
+
+def _loop_quadrant_from_xy(x, y):
+
+    assert(len(x) == len(y))
+    assert(np.sum(np.logical_not(np.isfinite(x))) == 0)
+    assert(np.sum(np.logical_not(np.isfinite(y))) == 0)
+    
+    quadrants = [quadrant_from_xy(*c) for c in zip(x, y)]
+
+    return np.array(quadrants)
+    
 def subtract_dark_current(im, time_seconds):
 
     print('Subtracting dark current')
@@ -435,5 +462,7 @@ def pc_phot(exp):
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']
 
     cat['G_PRIME'] = get_g_prime(cat['PHOT_G_MEAN_MAG'], cat['BP_RP'])
+
+    cat['quadrant'] = _loop_quadrant_from_xy(cat['xcentroid'], cat['ycentroid'])
 
     return cat
