@@ -10,6 +10,7 @@ from pointing_camera.gaia import read_gaia_cat
 import time
 from pointing_camera.analysis.djs_photcen import djs_photcen
 from photutils import CircularAperture, CircularAnnulus, aperture_photometry
+import photutils
 from astropy.stats import sigma_clipped_stats
 
 def get_wcs_filename(fname_im, verify=True):
@@ -421,5 +422,8 @@ def pc_phot(exp):
     cat = hstack([cat, centroids])
 
     pc_aper_phot(exp.detrended, cat)
+
+    # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
+    cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']
 
     return cat
