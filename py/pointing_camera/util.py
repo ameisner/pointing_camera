@@ -9,6 +9,8 @@ import numpy as np
 from pointing_camera.gaia import read_gaia_cat
 import time
 from pointing_camera.analysis.djs_photcen import djs_photcen
+from photutils import CircularAperture, CircularAnnulus, aperture_photometry
+from astropy.stats import sigma_clipped_stats
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -357,6 +359,54 @@ def pc_recentroid(im, cat):
 
     return result
 
+def _get_area_from_ap(ap):
+    # this is to try and work around the photutils API change
+    # between versions 0.6 and 0.7
+    if photutils.__version__.find('0.7') != -1:
+        area = ap.area # 0.7
+    else:
+        area = ap.area() # 0.6
+
+    return area
+
+def pc_aper_phot(im, cat):
+
+    print('Attempting to do aperture photometry')
+
+    im = im.astype(float)
+
+    par = common.pc_params()
+
+    positions = list(zip(cat['xcentroid'], cat['ycentroid']))
+
+    radii = par['aper_phot_objrad']
+    ann_radii = par['annulus_radii'] # should have 2 elements - inner and outer
+
+    apertures = [CircularAperture(positions, r=r) for r in radii]
+    annulus_apertures = CircularAnnulus(positions, r_in=ann_radii[0],
+                                        r_out=ann_radii[1])
+    annulus_masks = annulus_apertures.to_mask(method='center')
+
+    bkg_median = []
+    for mask in annulus_masks:
+        annulus_data = mask.multiply(im)
+        annulus_data_1d = annulus_data[mask.data > 0]
+        # this sigma_clipped_stats call is actually the slow part !!
+        _, median_sigclip, std_bg = sigma_clipped_stats(annulus_data_1d)
+        bkg_median.append(median_sigclip)
+
+    bkg_median = np.array(bkg_median)
+    phot = aperture_photometry(im, apertures)
+
+    for i, aperture in enumerate(apertures):
+        aper_bkg_tot = bkg_median*_get_area_from_ap(aperture)
+        cat['aper_sum_bkgsub_' + str(i)] = phot['aperture_sum_' + str(i)] - aper_bkg_tot
+
+        cat['aper_bkg_' + str(i)] = aper_bkg_tot
+
+    cat['sky_annulus_area_pix'] = _get_area_from_ap(annulus_apertures)
+    cat['sky_annulus_median'] = bkg_median
+
 def pc_phot(exp):
     # main photometry driver; exp is a PC_exposure object
 
@@ -369,5 +419,7 @@ def pc_phot(exp):
     assert(len(centroids) == len(cat))
 
     cat = hstack([cat, centroids])
+
+    pc_aper_phot(exp.detrended, cat)
 
     return cat

@@ -1,3 +1,5 @@
+import numpy as np
+
 def pc_params():
     # eventually generalize this to return correct parameters
     # for either el Nino or la Nina -- right now it's just for El Nino
@@ -13,6 +15,8 @@ def pc_params():
                                    0.083619997],
            'meta_env_var' : 'POINTING_CAMERA_META',
            'static_mask_filename' : 'pc_badpix_mask.fits.gz',
-           'gaia_env_var' : 'PC_GAIA_DIR'}
+           'gaia_env_var' : 'PC_GAIA_DIR',
+           'aper_phot_objrad': 2.0 + 0.5*np.arange(7),
+           'annulus_radii' : [12.0, 20.0]}
 
     return par
