@@ -17,6 +17,7 @@ def pc_params():
            'static_mask_filename' : 'pc_badpix_mask.fits.gz',
            'gaia_env_var' : 'PC_GAIA_DIR',
            'aper_phot_objrad': 2.0 + 0.5*np.arange(7),
-           'annulus_radii' : [12.0, 20.0]}
+           'annulus_radii' : [12.0, 20.0],
+           'bp_rp_coeff' : 0.25}
 
     return par

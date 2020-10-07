@@ -462,7 +462,9 @@ def get_g_prime(G, BP_RP):
     # right now this is pretty much trivial but in the future it
     # could become more complex
 
-    g_prime = G + 0.25*BP_RP
+    par = common.pc_params()
+
+    g_prime = G + par['bp_rp_coeff']*BP_RP
 
     return g_prime
 
