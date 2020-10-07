@@ -1,0 +1,7 @@
+numpy==1.13.3
+matplotlib==2.1.2
+fitsio==0.9.11
+photutils==0.4
+scipy==1.1.0
+astropy==2.0.7
+healpy==1.14.0
