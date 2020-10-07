@@ -20,7 +20,7 @@ def write_image_level_outputs(exp, outdir):
     assert(not os.path.exists(outname))
     assert(not os.path.exists(outname_tmp))
 
-    hdu = fits.PrimaryHDU(exp.detrended.astype('float32'))
+    hdu = fits.PrimaryHDU(exp.detrended.astype('float32'), header=exp.header)
     hdu.writeto(outname_tmp)
     os.rename(outname_tmp, outname)
 
