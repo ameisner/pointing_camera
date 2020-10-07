@@ -7,6 +7,7 @@ import time
 from exposure import PC_exposure
 import pointing_camera.util as util
 import pointing_camera.io as io
+import pointing_camera.zp as zp
 
 def pc_proc(fname_in, outdir=None):
 
@@ -31,6 +32,8 @@ def pc_proc(fname_in, outdir=None):
     sky = util.sky_summary_table(exp)
 
     cat = util.pc_phot(exp)
+
+    zps = zp.calc_many_zps(cat, exp.time_seconds, exp.fname_im)
 
     if write_outputs:
         if not os.path.exists(outdir):

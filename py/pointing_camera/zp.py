@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pointing_camera.common as common
 import copy
-from astropy.table import Table
+from astropy.table import Table, vstack
 
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
     # quadrant = 0 means whole image (all quadrants combined)
@@ -38,7 +38,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
 
     m_inst = cat['m_inst'][:, aper_ind]
 
-    diff = cat['g_prime'] - m_inst
+    diff = cat['G_PRIME'] - m_inst
     nf = np.sum(np.isfinite(diff))
     
     zp = np.nanmedian(diff)
@@ -61,15 +61,57 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
     result = Table()
 
     result['quadrant'] = [quadrant]
+    result['aper_ind'] = [aper_ind]
     result['zp_adu_per_s'] = [zp]
     result['n_sources_for_zp'] = [n]
     result['time_seconds'] = [time_seconds]
-    result['aper_ind'] = [aper_ind]
     result['bp_rp_median'] = [np.nanmedian(cat['BP_RP'])]
     result['gaia_g_median'] = [np.nanmedian(cat['PHOT_G_MEAN_MAG'])]
     result['robust_sigma_mag'] = [sig_robust]
     result['fname_raw'] = [fname_im]
 
+    # checkplot (eventually make this optional)
+    if (quadrant is 0) and (aper_ind is 1):
+        plt.cla()
+        xtitle = 'G + 0.25*(BP-RP)'
+        ytitle = '-2.5' + r'$\times$' + 'log' + r'$_{10}$' + '(ADU/sec)'
+        title = fname_im.split('/')[-1]
+        title = title.replace('.fits', '')
+        title += '; aper1; all quads'
+
+        plt.scatter(cat['G_PRIME'], m_inst, s=20, edgecolor='none',
+                    facecolor='k')
+
+        xmin = np.nanmin(cat['G_PRIME'])
+        xmax = np.nanmax(cat['G_PRIME'])
+        ymin = np.nanmin(m_inst)
+        ymax = np.nanmax(m_inst)
+
+        xsamp = np.array([xmin, xmax])
+        ysamp = xsamp - zp
+
+        plt.plot(xsamp, ysamp, linewidth=2, c='r')
+
+        plt.title(title)
+        plt.xlabel(xtitle)
+        plt.ylabel(ytitle)
+
     return result
     
-    
+def calc_many_zps(cat, time_seconds, fname_im):
+
+    print('Attempting to calculate zeropoints')
+
+    par = common.pc_params()
+
+    results = []
+    for q in [0, 1, 2, 3, 4]:
+        for aper_ind in range(len(par['aper_phot_objrad'])):
+            print('Computing zeropoint for quadrant : ', q, ' , aper ',
+                  aper_ind)
+            result = calc_zp(cat, aper_ind, time_seconds, fname_im, quadrant=q)
+            results.append(result)
+
+    results = vstack(results)
+
+    return results
