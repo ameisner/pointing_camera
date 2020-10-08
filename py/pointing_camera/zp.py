@@ -27,7 +27,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
            np.isfinite(cat['PHOT_RP_MEAN_MAG']) & \
            np.isfinite(cat['PHOT_G_MEAN_MAG'])
 
-    if quadrant is not 0:
+    if quadrant != 0:
         good = good & (cat['quadrant'] == quadrant)
 
     if np.sum(good) == 0:
@@ -50,8 +50,8 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
     # at first glance argsort appears to put NaN's at end of sorted array
     sind = np.argsort(resid) # should look into what exactly happens with NaN's
 
-    ind_l = max(round(0.16*nf), 0)
-    ind_u = min(round(0.84*nf), n-1)
+    ind_l = max(int(round(0.16*nf)), 0)
+    ind_u = min(int(round(0.84*nf)), n-1)
 
     resid_l = resid[sind[ind_l]]
     resid_u = resid[sind[ind_u]]
@@ -71,7 +71,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
     result['fname_raw'] = [fname_im]
 
     # checkplot (eventually make this optional)
-    if (quadrant is 0) and (aper_ind is 1):
+    if (quadrant == 0) and (aper_ind == 1):
         plt.cla()
         plt.figure(1)
         xtitle = 'G + 0.25*(BP-RP)'
