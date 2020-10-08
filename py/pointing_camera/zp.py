@@ -6,7 +6,8 @@ import pointing_camera.common as common
 import copy
 from astropy.table import Table, vstack
 
-def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
+def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
+            checkplot=True):
     # quadrant = 0 means whole image (all quadrants combined)
 
     assert(time_seconds > 0)
@@ -73,7 +74,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
     result['fname_raw'] = [fname_im]
 
     # checkplot (eventually make this optional)
-    if (quadrant == 0) and (aper_ind == 1):
+    if checkplot and (quadrant == 0) and (aper_ind == 1):
         plt.cla()
         plt.figure(1)
         xtitle = 'G + 0.25*(BP-RP)'
@@ -101,7 +102,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0):
 
     return result
     
-def calc_many_zps(cat, time_seconds, fname_im):
+def calc_many_zps(cat, time_seconds, fname_im, checkplot=True):
 
     print('Attempting to calculate zeropoints')
 
@@ -112,7 +113,8 @@ def calc_many_zps(cat, time_seconds, fname_im):
         for aper_ind in range(len(par['aper_phot_objrad'])):
             print('Computing zeropoint for quadrant : ', q, ' , aper ',
                   aper_ind)
-            result = calc_zp(cat, aper_ind, time_seconds, fname_im, quadrant=q)
+            result = calc_zp(cat, aper_ind, time_seconds, fname_im,
+                             quadrant=q, checkplot=checkplot)
             results.append(result)
 
     results = vstack(results)

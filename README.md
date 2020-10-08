@@ -35,3 +35,4 @@ This produces the following output files:
       --outdir OUTDIR  directory to write outputs in
       --dont_write_detrended
                             don't write detrended image
+      --skip_checkplot      don't create a checkplot
