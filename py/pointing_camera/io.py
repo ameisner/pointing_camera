@@ -1,6 +1,8 @@
 import astropy.io.fits as fits
 import os
 import pointing_camera.common as common
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 def write_image_level_outputs(exp, outdir):
