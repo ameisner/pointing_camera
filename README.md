@@ -33,3 +33,5 @@ This produces the following output files:
     optional arguments:
       -h, --help       show this help message and exit
       --outdir OUTDIR  directory to write outputs in
+      --dont_write_detrended
+                            don't write detrended image

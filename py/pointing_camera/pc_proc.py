@@ -9,7 +9,7 @@ import pointing_camera.util as util
 import pointing_camera.io as io
 import pointing_camera.zp as zp
 
-def pc_proc(fname_in, outdir=None):
+def pc_proc(fname_in, outdir=None, dont_write_detrended=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -39,7 +39,9 @@ def pc_proc(fname_in, outdir=None):
         if not os.path.exists(outdir):
             os.mkdir(outdir)
 
-        io.write_image_level_outputs(exp, outdir)
+        if not dont_write_detrended:
+            io.write_image_level_outputs(exp, outdir)
+
         io.write_sky_summary(sky, exp, outdir)
         io.write_source_catalog(cat, exp, outdir)
         io.write_zeropoints_table(zps, exp, outdir)
@@ -57,11 +59,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=descr)
 
     parser.add_argument('fname_in', type=str, nargs=1,
-                        help='pointing camera raw image file name')
+                        help="pointing camera raw image file name")
 
     parser.add_argument('--outdir', default=None, type=str,
-                        help='directory to write outputs in')
+                        help="directory to write outputs in")
+
+    parser.add_argument('--dont_write_detrended', default=False,
+                        action='store_true',
+                        help="don't write detrended image")
     
     args = parser.parse_args()
     
-    pc_proc(args.fname_in[0], outdir=args.outdir)
+    pc_proc(args.fname_in[0], outdir=args.outdir,
+            dont_write_detrended=args.dont_write_detrended)
