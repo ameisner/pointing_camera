@@ -413,7 +413,7 @@ def pc_recentroid(im, cat):
 def _get_area_from_ap(ap):
     # this is to try and work around the photutils API change
     # between versions 0.6 and 0.7
-    if photutils.__version__.find('0.7') != -1:
+    if (photutils.__version__.find('0.7') != -1) or (photutils.__version__.find('1.0') != -1):
         area = ap.area # 0.7
     else:
         area = ap.area() # 0.6
