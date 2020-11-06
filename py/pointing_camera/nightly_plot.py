@@ -17,7 +17,7 @@ files_processed = []
 skies_table = None
 zps_table = None
 
-def sky_subplot(tab, xticklabels=True):
+def sky_subplot(tab, xticklabels=True, mjdrange=None):
 
     # build a list of datetime objects
 
@@ -32,11 +32,16 @@ def sky_subplot(tab, xticklabels=True):
 
     # forgot to add column for MEAN_ADU_PER_S during reductions !!!!!!!
     plt.scatter(datetimes, -2.5*np.log10(tab['MEAN_ADU']/tab['TIME_SECONDS']),
-                edgecolor='none', s=20)
+                edgecolor='none', s=20, c='b')
 
     plt.ylabel(r'$-2.5\times$' + 'log' + r'$_{10}$' + '(ADU/pix/s)',
                fontsize=12)
     plt.xlabel(r'time (UT)', fontsize=12)
+
+    if mjdrange is not None:
+        date_min = Time(mjdrange[0] - 0.01, format='mjd').to_datetime()
+        date_max = Time(mjdrange[1] + 0.01, format='mjd').to_datetime()
+        plt.xlim((date_min, date_max))
 
     ax = plt.gca()
     xfmt = md.DateFormatter('%H:%M')
@@ -46,7 +51,7 @@ def sky_subplot(tab, xticklabels=True):
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
 
-def zp_subplot(tab, xticklabels=False):
+def zp_subplot(tab, xticklabels=False, mjdrange=None):
 
     print(tab.columns)
     datetimes = []
@@ -55,7 +60,7 @@ def zp_subplot(tab, xticklabels=False):
         datetimes.append(tm.to_datetime())
 
     plt.scatter(datetimes, tab['ZP_ADU_PER_S'],
-                edgecolor='none', s=20)
+                edgecolor='none', s=20, c='b')
 
     ax = plt.gca()
     xfmt = md.DateFormatter('%H:%M')
@@ -64,17 +69,22 @@ def zp_subplot(tab, xticklabels=False):
     plt.title('pointing camera zeropoint')
 
     plt.ylabel('zeropoint (G' + r"$'$" + ' ; 1 ADU/s)')
+
+    if mjdrange is not None:
+        date_min = Time(mjdrange[0] - 0.01, format='mjd').to_datetime()
+        date_max = Time(mjdrange[1] + 0.01, format='mjd').to_datetime()
+        plt.xlim((date_min, date_max))
     
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
     
-def _twopanel(skies_table, zps_table, clobber=True):
+def _twopanel(skies_table, zps_table, clobber=True, mjdrange=None):
 
     plt.subplot(2, 1, 1)
-    zp_subplot(zps_table)
+    zp_subplot(zps_table, mjdrange=mjdrange)
     
     plt.subplot(2, 1, 2)
-    sky_subplot(skies_table)
+    sky_subplot(skies_table, mjdrange=mjdrange)
 
     # how to force the sky and zp panels to have the same
     # range of x values ... could imagine it getting confusing
@@ -84,7 +94,7 @@ def _twopanel(skies_table, zps_table, clobber=True):
     # mainly for debugging purposes
     if not clobber:
         t = time.time()
-        outname = outname.replace('.png', str(t) + '.png')
+        outname = outname.replace('.png', str(round(t)) + '.png')
 
     plt.savefig(outname, dpi=200, bbox_inches='tight')
 
@@ -101,7 +111,10 @@ def _read_concat_tables(flist):
             tables.append(t)
 
     print('Attempting to append tables...')
-    result = vstack(tables)
+    if len(tables) == 1:
+        result = tables[0]
+    else:
+        result = vstack(tables)
     print('Finished appending tables...')
 
     return result
@@ -118,6 +131,10 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', clobber=True):
 
     flist_sky = glob.glob(data_dir + '/????????/*sky.fits')
     flist_zp = glob.glob(data_dir + '/????????/*zeropoints.fits')
+
+    if (len(flist_sky) == 0) or (len(flist_zp) == 0):
+        print('Nothing to plot yet...')
+        return
 
     # figure out new list of sky.fits and zeropoints.fits files
 
@@ -140,15 +157,20 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', clobber=True):
             zps_table = vstack([zps_table, new_zps])
         else:
             zps_table = new_zps
-
+    
     # update skies_table and zps_table by appending new rows
     # to old rows
     
     files_processed = flist_sky + flist_zp # what if a file gets deleted though?
 
     if (len(flist_sky_new) > 0) or (len(flist_zeropoints_new) > 0):
+
+        mjdrange = [min(np.min(zps_table['MJD_OBS']),
+                        np.min(skies_table['MJD_OBS'])),
+                    max(np.max(zps_table['MJD_OBS']),
+                        np.max(skies_table['MJD_OBS']))]
         plt.cla()
-        _twopanel(skies_table, zps_table, clobber=clobber)
+        _twopanel(skies_table, zps_table, clobber=clobber, mjdrange=mjdrange)
     else:
         print('No new reduction output files found...')
     
@@ -176,8 +198,8 @@ if __name__ == "__main__":
     parser.add_argument('--wait_seconds', default=5, type=int,
                         help="plot creation polling interval in seconds")
 
-    parser.add_argument('--clobber', default=True, type=bool,
-                        help="overwrite nightly image when updating")
+    parser.add_argument('--no_clobber', default=False, action='store_true',
+                        help="new nightly plot image for every update")
 
     args = parser.parse_args()
 
@@ -188,5 +210,5 @@ if __name__ == "__main__":
 
     _watch(wait_seconds=args.wait_seconds, data_dir=args.data_dir,
            outdir=args.outdir,
-           clobber=args.clobber)
+           clobber=(not args.no_clobber))
     
