@@ -55,7 +55,7 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.'):
 
         _reduce_new_files(flist_wcs_new, outdir=outdir)
 
-    files_processed = files_processed + flist_wcs_new
+        files_processed = files_processed + flist_wcs_new
         
 
 def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.'):
