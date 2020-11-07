@@ -65,6 +65,19 @@ def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.'):
         time.sleep(wait_seconds)
         _proc_new_files(data_dir=data_dir, outdir=outdir)
 
+def _do_veto(fname):
+    assert(os.path.exists(fname))
+
+    global files_processed
+
+    f = open(fname, 'r')
+
+    veto_list = f.readlines()
+
+    veto_list = [v.replace('\n', '') for v in veto_list]
+
+    files_processed = veto_list
+
 if __name__ == "__main__":
     descr = 'process new pointing camera astrometry mode images in real time'
 
@@ -82,9 +95,15 @@ if __name__ == "__main__":
     parser.add_argument('--wait_seconds', default=5, type=int,
                         help="polling interval in seconds")
 
+    parser.add_argument('--veto_list', default=None, type=str,
+                        help="list of files not to process")
+
     args = parser.parse_args()
 
     assert(args.wait_seconds >= 1)
+
+    if args.veto_list is not None:
+        _do_veto(args.veto_list)
 
     _watch(wait_seconds=args.wait_seconds, data_dir=args.data_dir,
            outdir=args.outdir)
