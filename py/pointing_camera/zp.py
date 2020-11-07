@@ -96,6 +96,17 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 
         plt.plot(xsamp, ysamp, linewidth=2, c='r')
 
+        ax = plt.gca()
+
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+
+        xtext = xlim[0] + (xlim[1] - xlim[0])*0.125
+        ytext = ylim[0] + (ylim[1] - ylim[0])*0.875
+
+        # this shouldn't crash for NaN zeropoint value...
+        plt.text(xtext, ytext, 'ZP = ' + '{:.2f}'.format(zp), color='r')
+
         plt.title(title)
         plt.xlabel(xtitle)
         plt.ylabel(ytitle)
