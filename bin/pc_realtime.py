@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+import argparse
+import glob
+import time
+import os
+import pointing_camera.pc_proc as pipeline
+
+default_data_dir = '/global/cscratch1/sd/ameisner/pointing_camera/nino' # NERSC
+
+files_processed = []
+
+def _reduce_new_files(flist_wcs, outdir='.'):
+
+    # time to allow (seconds) between file existing and being completely
+    # written
+
+    write_wait = 1.5
+    for f_wcs in flist_wcs:
+        # check that the corresponding .fits raw image exists
+        # if there's a .wcs file with no corresponding raw .fits image
+        # then something is badly wrong...
+
+        f_fits = f_wcs.replace('.wcs', '.fits')
+
+        if not os.path.exists(f_fits):
+            print('WCS file with no corresponding raw image?? skipping')
+            continue
+
+        # call the reduction pipeline
+        print('Reducing ' + f_fits)
+
+        pipeline.pc_proc(f_fits, outdir=outdir, dont_write_detrended=True,
+                         skip_checkplot=False)
+
+def _proc_new_files(data_dir=default_data_dir, outdir='.'):
+
+    print('Checking for new .wcs files...')
+
+    assert(os.path.exists(data_dir))
+
+    global files_processed
+
+    flist_wcs = glob.glob(data_dir + '/*.wcs')
+
+    if len(flist_wcs) == 0:
+        print('No data to reduce yet...')
+        return
+
+    flist_wcs_new = set(flist_wcs) - set(files_processed)
+
+    if len(flist_wcs_new) > 0:
+        flist_wcs_new = list(flist_wcs_new)
+        flist_wcs_new.sort()
+
+        _reduce_new_files(flist_wcs_new, outdir=outdir)
+
+    files_processed = files_processed + flist_wcs_new
+        
+
+def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.'):
+
+    while True:
+        print('Waiting', wait_seconds, ' seconds')
+        time.sleep(wait_seconds)
+        _proc_new_files(data_dir=data_dir, outdir=outdir)
+
+if __name__ == "__main__":
+    descr = 'process new pointing camera astrometry mode images in real time'
+
+    parser = argparse.ArgumentParser(description=descr)
+
+    parser.add_argument('--start_night', default=None, type=str,
+                        help="observing night to start with")
+
+    parser.add_argument('--data_dir', default=default_data_dir, type=str,
+                        help="directory with raw images and WCS files")
+    
+    parser.add_argument('--outdir', default='.', type=str,
+                        help="directory to write pipeline outputs in")
+
+    parser.add_argument('--wait_seconds', default=5, type=int,
+                        help="polling interval in seconds")
+
+    args = parser.parse_args()
+
+    assert(args.wait_seconds >= 1)
+
+    _watch(wait_seconds=args.wait_seconds, data_dir=args.data_dir,
+           outdir=args.outdir)
