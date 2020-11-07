@@ -4,7 +4,7 @@ import argparse
 from datetime import datetime
 import os
 import time
-from exposure import PC_exposure
+from pointing_camera.exposure import PC_exposure
 import pointing_camera.util as util
 import pointing_camera.io as io
 import pointing_camera.zp as zp

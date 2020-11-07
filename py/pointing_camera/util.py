@@ -1,7 +1,7 @@
 import astropy.io.fits as fits
 from astropy import wcs
 import os
-import common
+import pointing_camera.common as common
 import pointing_camera.io as io
 import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
 from astropy.table import Table, hstack
