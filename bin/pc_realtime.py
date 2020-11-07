@@ -12,10 +12,12 @@ files_processed = []
 
 def _reduce_new_files(flist_wcs, outdir='.'):
 
-    # time to allow (seconds) between file existing and being completely
-    # written
+    # time to allow (seconds) between WCS file existing and being completely
+    # written ; intended to be generous
 
     write_wait = 1.5
+    time.sleep(write_wait)
+
     for f_wcs in flist_wcs:
         # check that the corresponding .fits raw image exists
         # if there's a .wcs file with no corresponding raw .fits image
@@ -30,8 +32,11 @@ def _reduce_new_files(flist_wcs, outdir='.'):
         # call the reduction pipeline
         print('Reducing ' + f_fits)
 
-        pipeline.pc_proc(f_fits, outdir=outdir, dont_write_detrended=True,
+        try:
+            pipeline.pc_proc(f_fits, outdir=outdir, dont_write_detrended=True,
                          skip_checkplot=False)
+        except:
+            print('PROCESSING FAILURE: ' + f_fits)
 
 def _proc_new_files(data_dir=default_data_dir, outdir='.'):
 
