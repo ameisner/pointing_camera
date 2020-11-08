@@ -253,11 +253,35 @@ def detrend_pc(exp):
 
     print('Finished detrending the raw pointing camera image')
 
+def sky_metrics(im):
+    # im is a 2D numpy array, intended to be either a full-frame
+    # image or one quadrant of a full-frame image
+
+    sz = im.shape
+    assert(len(sz) == 2)
+
+    im_sorted = np.ravel(im)
+    
+    sind = np.argsort(im_sorted)
+
+    im_sorted = im_sorted[sind]
+
+    n = len(im_sorted)
+
+    ind_med = int(round(0.5*n))
+
+    med = im_sorted[ind_med]
+
+    result = {'median': med}
+
+    return result
+
 def sky_summary_table(exp):
 
     print('Computing sky background statistics')
 
-    med = np.median(exp.detrended)
+    metrics = sky_metrics(exp.detrended)
+    med = metrics['median']
 
     t = Table()
 
@@ -268,7 +292,8 @@ def sky_summary_table(exp):
 
     qmeds = []
     for q in [1, 2, 3, 4]:
-        qmed = np.median(get_quadrant(exp.detrended, q))
+        qmetrics = sky_metrics(get_quadrant(exp.detrended, q))
+        qmed = qmetrics['median']
         qmeds.append(qmed)
         
         t['median_adu_quad' + str(q)] = [qmed]
