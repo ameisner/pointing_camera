@@ -10,6 +10,8 @@ class PC_exposure:
         util.check_image_dimensions(im)
 
         util._check_bitpix(h)
+
+        self.obs_night = util.get_obs_night(h['DATE'], h['TIME'])
         
         # image file name
         self.fname_im = fname_im

@@ -12,6 +12,7 @@ from pointing_camera.analysis.djs_photcen import djs_photcen
 from photutils import CircularAperture, CircularAnnulus, aperture_photometry
 import photutils
 from astropy.stats import sigma_clipped_stats
+from astropy.time import Time
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -339,6 +340,7 @@ def sky_summary_table(exp):
     t['inter_quad_rms_adu'] = [rms_adu]
     t['inter_quad_rms_adu_per_s'] = [rms_adu/exp.time_seconds]
     t['mjd_obs'] = exp.header['MJD-OBS']
+    t['obs_night'] = exp.obs_night
 
     return t
 
@@ -583,3 +585,35 @@ def pc_phot(exp):
     source_raw_pixel_metrics(cat, exp.raw_image)
 
     return cat
+
+def get_obs_night(date_string_local, time_string_local):
+    # 'local' for KPNO means MST
+    # date_string_local should be something like 2020/11/08
+    # time_string_local should be something like 04:44:49
+
+    # strip spaces from date_string_local and time_string_local
+
+    date_string_local = date_string_local.replace(' ', '')
+    time_string_local = time_string_local.replace(' ', '')
+
+    assert(len(date_string_local) == 10)
+    assert(len(time_string_local) == 8)
+
+    hours = int(time_string_local[0:2])
+
+    # stipulate that observing night rolls over at noon local time
+    if hours >= 12:
+        return date_string_local.replace('/', '')
+    else:
+        # figure out what was the previous calendar date
+        fiducial_time_string = date_string_local.replace('/', '-') + 'T01:00:00'
+
+        t = Time(fiducial_time_string, scale='utc')
+
+        mjd_yesterday = t.mjd - 1.0
+
+        t_yesterday = Time(mjd_yesterday, scale='utc', format='mjd')
+
+        date_string_yesterday = np.datetime_as_string(t_yesterday.datetime64)[0:10].replace('-', '')
+
+        return date_string_yesterday

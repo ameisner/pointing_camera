@@ -127,6 +127,7 @@ def calc_many_zps(cat, exp, checkplot=True):
             result = calc_zp(cat, aper_ind, exp.time_seconds, exp.fname_im,
                              quadrant=q, checkplot=checkplot)
             result['mjd_obs'] = exp.header['MJD-OBS']
+            result['obs_night'] = exp.obs_night
             results.append(result)
 
     results = vstack(results)
