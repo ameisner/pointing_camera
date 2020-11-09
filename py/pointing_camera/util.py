@@ -269,10 +269,34 @@ def sky_metrics(im):
     n = len(im_sorted)
 
     ind_med = int(round(0.5*n))
+    ind_u = int(round(0.84*n))
+    ind_l = int(round(0.16*n))
+
+    ind_med = min(max(ind_med, 0), n-1)
+    ind_u = min(max(ind_u, 0), n-1)
+    ind_l = min(max(ind_l, 0), n-1)
 
     med = im_sorted[ind_med]
 
-    result = {'median': med}
+    val_u = im_sorted[ind_u]
+    val_l = im_sorted[ind_l]
+
+    sig = (val_u - val_l)/2.0
+
+    nsig_thresh = 5.0
+
+    val_l = med - nsig_thresh*sig
+    val_u = med + nsig_thresh*sig
+
+    good = (im_sorted >= val_l) & (im_sorted <= val_u)
+    ngood = int(np.sum(good))
+
+    assert(ngood > 0)
+
+    result = {'median': med,
+              'sky_clipped_mean': np.mean(im_sorted[good]),
+              'sky_sig': sig,
+              'n_pixels_used': ngood}
 
     return result
 
@@ -282,11 +306,14 @@ def sky_summary_table(exp):
 
     metrics = sky_metrics(exp.detrended)
     med = metrics['median']
+    mean = metrics['sky_clipped_mean']
 
     t = Table()
 
     t['median_adu'] = [med]
     t['median_adu_per_s'] = [med/exp.time_seconds]
+    t['mean_adu'] = [mean]
+    t['mean_adu_per_s'] = [mean/exp.time_seconds]
     t['time_seconds'] = [exp.time_seconds]
     t['fname_raw'] = [exp.fname_im]
 
@@ -294,11 +321,16 @@ def sky_summary_table(exp):
     for q in [1, 2, 3, 4]:
         qmetrics = sky_metrics(get_quadrant(exp.detrended, q))
         qmed = qmetrics['median']
+        qmean = qmetrics['sky_clipped_mean']
         qmeds.append(qmed)
         
         t['median_adu_quad' + str(q)] = [qmed]
 
         t['median_adu_quad' + str(q) + '_per_s'] = [qmed/exp.time_seconds]
+
+        t['mean_adu_quad' + str(q)] = [qmean]
+
+        t['mean_adu_quad' + str(q) + '_per_s'] = [qmean/exp.time_seconds]
 
     diff = np.array(qmeds) - np.median(qmeds)
 
