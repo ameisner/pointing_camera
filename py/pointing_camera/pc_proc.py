@@ -34,8 +34,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     cat = util.pc_phot(exp)
 
-    zps = zp.calc_many_zps(cat, exp.time_seconds, exp.fname_im,
-                           checkplot=(not skip_checkplot))
+    zps = zp.calc_many_zps(cat, exp, checkplot=(not skip_checkplot))
 
     if write_outputs:
         if not os.path.exists(outdir):

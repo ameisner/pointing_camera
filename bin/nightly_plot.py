@@ -11,7 +11,7 @@ import time
 from astropy.table import Table, vstack
 import os
 
-default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/reduced/v0002' # NERSC
+default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/reduced/v0005' # NERSC
 
 files_processed = []
 skies_table = None
@@ -25,13 +25,13 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None):
     # to be used both by the sky and zeropoints subplots
     datetimes = []
     for t in tab:
-        tm = Time(t['MJD_OBS'], format='mjd')
+        tm = Time(t['mjd_obs'], format='mjd')
         datetimes.append(tm.to_datetime())
 
     #plt.scatter(tab['MJD_OBS'], tab['MEAN_ADU'], s=10, edgecolor='none')
 
     # forgot to add column for MEAN_ADU_PER_S during reductions !!!!!!!
-    plt.scatter(datetimes, -2.5*np.log10(tab['MEAN_ADU']/tab['TIME_SECONDS']),
+    plt.scatter(datetimes, -2.5*np.log10(tab['mean_adu']/tab['time_seconds']),
                 edgecolor='none', s=20, c='b')
 
     plt.ylabel(r'$-2.5\times$' + 'log' + r'$_{10}$' + '(ADU/pix/s)',
@@ -56,10 +56,10 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None):
     print(tab.columns)
     datetimes = []
     for t in tab:
-        tm = Time(t['MJD_OBS'], format='mjd')
+        tm = Time(t['mjd_obs'], format='mjd')
         datetimes.append(tm.to_datetime())
 
-    plt.scatter(datetimes, tab['ZP_ADU_PER_S'],
+    plt.scatter(datetimes, tab['zp_adu_per_s'],
                 edgecolor='none', s=20, c='b')
 
     ax = plt.gca()
@@ -107,7 +107,7 @@ def _read_concat_tables(flist):
         print('READING: ' + f, ' ; ', i+1, ' of ', len(flist))
         assert(os.path.exists(f))
         t = Table(fits.getdata(f))
-        if t[0]['MJD_OBS'] != 0:
+        if t[0]['mjd_obs'] != 0:
             tables.append(t)
 
     print('Attempting to append tables...')
@@ -150,8 +150,8 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', clobber=True):
         
     if len(flist_zeropoints_new) > 0:
         new_zps = _read_concat_tables(flist_zeropoints_new)
-        new_zps = new_zps[(new_zps['APER_IND'] == 1) &
-                          (new_zps['QUADRANT'] == 0)]
+        new_zps = new_zps[(new_zps['aper_ind'] == 1) &
+                          (new_zps['quadrant'] == 0)]
 
         if zps_table is not None:
             zps_table = vstack([zps_table, new_zps])
@@ -165,10 +165,10 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', clobber=True):
 
     if (len(flist_sky_new) > 0) or (len(flist_zeropoints_new) > 0):
 
-        mjdrange = [min(np.min(zps_table['MJD_OBS']),
-                        np.min(skies_table['MJD_OBS'])),
-                    max(np.max(zps_table['MJD_OBS']),
-                        np.max(skies_table['MJD_OBS']))]
+        mjdrange = [min(np.min(zps_table['mjd_obs']),
+                        np.min(skies_table['mjd_obs'])),
+                    max(np.max(zps_table['mjd_obs']),
+                        np.max(skies_table['mjd_obs']))]
         plt.cla()
         _twopanel(skies_table, zps_table, clobber=clobber, mjdrange=mjdrange)
     else:

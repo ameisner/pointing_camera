@@ -113,7 +113,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 
     return result
     
-def calc_many_zps(cat, time_seconds, fname_im, checkplot=True):
+def calc_many_zps(cat, exp, checkplot=True):
 
     print('Attempting to calculate zeropoints')
 
@@ -124,8 +124,9 @@ def calc_many_zps(cat, time_seconds, fname_im, checkplot=True):
         for aper_ind in range(len(par['aper_phot_objrad'])):
             print('Computing zeropoint for quadrant : ', q, ' , aper ',
                   aper_ind)
-            result = calc_zp(cat, aper_ind, time_seconds, fname_im,
+            result = calc_zp(cat, aper_ind, exp.time_seconds, exp.fname_im,
                              quadrant=q, checkplot=checkplot)
+            result['mjd_obs'] = exp.header['MJD-OBS']
             results.append(result)
 
     results = vstack(results)

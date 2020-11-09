@@ -338,6 +338,7 @@ def sky_summary_table(exp):
 
     t['inter_quad_rms_adu'] = [rms_adu]
     t['inter_quad_rms_adu_per_s'] = [rms_adu/exp.time_seconds]
+    t['mjd_obs'] = exp.header['MJD-OBS']
 
     return t
 
