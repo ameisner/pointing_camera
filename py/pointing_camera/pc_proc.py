@@ -10,7 +10,7 @@ import pointing_camera.io as io
 import pointing_camera.zp as zp
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
-            skip_checkplot=False):
+            skip_checkplot=False, nightly_subdir=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -39,6 +39,13 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     if write_outputs:
         if not os.path.exists(outdir):
             os.mkdir(outdir)
+        if nightly_subdir:
+            # should add sanity checks on obs_night here
+            outdir = os.path.join(outdir, exp.obs_night)
+            if not os.path.exists(outdir):
+                print('Creating subdirectory for observing night = ' + \
+                      exp.obs_night)
+                os.mkdir(outdir)
 
         if not dont_write_detrended:
             io.write_image_level_outputs(exp, outdir)
@@ -74,9 +81,13 @@ if __name__ == "__main__":
     parser.add_argument('--skip_checkplot', default=False,
                         action='store_true',
                         help="don't create a checkplot")
+
+    parser.add_argument('--nightly_subdir', default=False, action='store_true',
+                        help="create output subdirectories per observing night")
     
     args = parser.parse_args()
     
     pc_proc(args.fname_in[0], outdir=args.outdir,
             dont_write_detrended=args.dont_write_detrended,
-            skip_checkplot=args.skip_checkplot)
+            skip_checkplot=args.skip_checkplot,
+            nightly_subdir=args.nightly_subdir)

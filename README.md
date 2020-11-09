@@ -36,3 +36,4 @@ This produces the following output files:
       --dont_write_detrended
                             don't write detrended image
       --skip_checkplot      don't create a checkplot
+      --nightly_subdir      create output subdirectories per observing night
