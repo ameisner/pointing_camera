@@ -617,3 +617,29 @@ def get_obs_night(date_string_local, time_string_local):
         date_string_yesterday = np.datetime_as_string(t_yesterday.datetime64)[0:10].replace('-', '')
 
         return date_string_yesterday
+
+def send_redis(exp, zp_adu_per_s, sky_adu_per_s):
+
+    import redis
+
+    timestamp = exp.header['DATE'].replace(' ', '').replace('/', '-') + '/' + \
+                exp.header['TIME'].replace(' ', '') + '/MST/'
+
+    print('Redis timestamp = ' + timestamp)
+
+    host = os.environ['REDISHOST']
+    port = int(os.environ['REDISPORT'])
+    db = int(os.environ['REDISDBNUM'])
+    key = os.environ['REDISKEY']
+
+    print('Attempting to connect with Redis...')
+    r = redis.Redis(host=host, port=port, db=db)
+
+    data = {'timestamp': timestamp,
+            'zp_adu_per_s': zp_adu_per_s,
+            'sky_adu_per_s': sky_adu_per_s}
+
+    print(data)
+
+    r.hset(key, mapping=data)
+    print('Redis data sent...')

@@ -10,7 +10,7 @@ import pointing_camera.io as io
 import pointing_camera.zp as zp
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
-            skip_checkplot=False, nightly_subdir=False):
+            skip_checkplot=False, nightly_subdir=False, send_redis=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -57,6 +57,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         if not skip_checkplot:
             io.save_zp_checkplot(exp, outdir)
 
+        if send_redis:
+            util.send_redis(exp, zps[(zps['aper_ind'] == 1) & (zps['quadrant'] == 0)]['zp_adu_per_s'][0], sky['mean_adu_per_s'][0])
+
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
           ' seconds')
@@ -84,10 +87,13 @@ if __name__ == "__main__":
 
     parser.add_argument('--nightly_subdir', default=False, action='store_true',
                         help="create output subdirectories per observing night")
+
+    parser.add_argument('--send_redis', default=False, action='store_true',
+                        help="send results to redis")
     
     args = parser.parse_args()
     
     pc_proc(args.fname_in[0], outdir=args.outdir,
             dont_write_detrended=args.dont_write_detrended,
             skip_checkplot=args.skip_checkplot,
-            nightly_subdir=args.nightly_subdir)
+            nightly_subdir=args.nightly_subdir, send_redis=args.send_redis)
