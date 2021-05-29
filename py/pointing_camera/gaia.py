@@ -6,6 +6,8 @@ import os
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table
+import time
+from multiprocessing import Pool
 
 # this is intended to mirror how the DESI imaging surveys access
 # Gaia, namely through the HEALPix-elized full-sky catalog at:
@@ -31,7 +33,7 @@ def gaia_chunknames(ipix):
                                     '.fits') for i in ipix]
     return flist
 
-def read_gaia_cat(ra, dec):
+def read_gaia_cat(ra, dec, nmp=None):
     # should add checks to make sure that ra and dec have compatible dimensions
     # should also check that this works for both scalar and array ra/dec
 
@@ -42,9 +44,20 @@ def read_gaia_cat(ra, dec):
     flist = gaia_chunknames(ipix_u)
 
     tablist = []
-    for f in flist:
-        print('READING : ', f)
-        tab = fits.getdata(f)
-        tablist.append(tab)
+
+    t0 = time.time()
+
+    if nmp is not None:
+        p = Pool(nmp)
+        tablist = p.map(fits.getdata, flist)
+    else:
+        for f in flist:
+            print('READING : ', f)
+            tab = fits.getdata(f)
+            tablist.append(tab)
+
+    dt = time.time()-t0
+
+    print('took ' + '{:.3f}'.format(dt) + ' seconds to read Gaia files')
 
     return np.hstack(tuple(tablist))
