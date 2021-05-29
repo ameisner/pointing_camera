@@ -435,6 +435,8 @@ def pc_recentroid(im, cat):
     qmaxshift = np.zeros(len(cat), dtype=int)
 
     print('Recentroiding...')
+    t0 = time.time()
+
     for i in range(len(cat)):
         _xcen, _ycen, q = djs_photcen(cat['x_gaia_guess'][i],
                                       cat['y_gaia_guess'][i], im, cbox=8,
@@ -442,6 +444,9 @@ def pc_recentroid(im, cat):
         xcen[i] = _xcen
         ycen[i] = _ycen
         qmaxshift[i] = q
+
+    dt = time.time()-t0
+    print('recentroiding took ', '{:.3f}'.format(dt), ' seconds')
 
     result = Table()
 
@@ -480,9 +485,11 @@ def _get_area_from_ap(ap):
 
     return area
 
-def pc_aper_phot(im, cat):
+def pc_aper_phot(im, cat, one_aper=False):
 
     print('Attempting to do aperture photometry')
+
+    t0 = time.time()
 
     im = im.astype(float)
 
@@ -490,7 +497,7 @@ def pc_aper_phot(im, cat):
 
     positions = list(zip(cat['xcentroid'], cat['ycentroid']))
 
-    radii = par['aper_phot_objrad']
+    radii = par['aper_phot_objrad'] if not one_aper else [par['aper_phot_objrad_best']]
     ann_radii = par['annulus_radii'] # should have 2 elements - inner and outer
 
     apertures = [CircularAperture(positions, r=r) for r in radii]
@@ -503,8 +510,9 @@ def pc_aper_phot(im, cat):
         annulus_data = mask.multiply(im)
         annulus_data_1d = annulus_data[mask.data > 0]
         # this sigma_clipped_stats call is actually the slow part !!
-        _, median_sigclip, std_bg = sigma_clipped_stats(annulus_data_1d)
-        bkg_median.append(median_sigclip)
+        ###_, median_sigclip, std_bg = sigma_clipped_stats(annulus_data_1d)
+        ###bkg_median.append(median_sigclip)
+        bkg_median.append(np.median(annulus_data_1d))
 
     bkg_median = np.array(bkg_median)
     phot = aperture_photometry(im, apertures)
@@ -524,6 +532,9 @@ def pc_aper_phot(im, cat):
         flux_adu[:, i] = cat['aper_sum_bkgsub_' + str(i)]
 
     cat['flux_adu'] = flux_adu
+
+    dt = time.time()-t0
+    print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
 
 def get_g_prime(G, BP_RP):
     # right now this is pretty much trivial but in the future it
@@ -553,7 +564,7 @@ def source_raw_pixel_metrics(cat, raw):
     cat['centroid_raw_pixel_val'] = centroid_pixel_vals
     cat['centroid_pixel_saturated'] = centroid_pixel_saturated
 
-def pc_phot(exp):
+def pc_phot(exp, one_aper=False):
     # main photometry driver; exp is a PC_exposure object
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
@@ -566,7 +577,7 @@ def pc_phot(exp):
 
     cat = hstack([cat, centroids])
 
-    pc_aper_phot(exp.detrended, cat)
+    pc_aper_phot(exp.detrended, cat, one_aper=one_aper)
 
     # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']

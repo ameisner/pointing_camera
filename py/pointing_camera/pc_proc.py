@@ -10,7 +10,8 @@ import pointing_camera.io as io
 import pointing_camera.zp as zp
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
-            skip_checkplot=False, nightly_subdir=False, send_redis=False):
+            skip_checkplot=False, nightly_subdir=False, send_redis=False,
+            one_aper=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -18,7 +19,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     t0 = time.time()
 
     write_outputs = (outdir is not None)
-    
+
     try:
         print('Running on host: ' + str(os.environ.get('HOSTNAME')))
     except:
@@ -32,9 +33,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     sky = util.sky_summary_table(exp)
 
-    cat = util.pc_phot(exp)
+    cat = util.pc_phot(exp, one_aper=one_aper)
 
-    zps = zp.calc_many_zps(cat, exp, checkplot=(not skip_checkplot))
+    zps = zp.calc_many_zps(cat, exp, one_aper=one_aper, checkplot=(not skip_checkplot))
 
     if write_outputs:
         if not os.path.exists(outdir):
@@ -90,10 +91,14 @@ if __name__ == "__main__":
 
     parser.add_argument('--send_redis', default=False, action='store_true',
                         help="send results to redis")
-    
+
+    parser.add_argument('--one_aper', default=False, action='store_true',
+                        help="only do aperture photometry for one aperture size")
+
     args = parser.parse_args()
-    
+
     pc_proc(args.fname_in[0], outdir=args.outdir,
             dont_write_detrended=args.dont_write_detrended,
             skip_checkplot=args.skip_checkplot,
-            nightly_subdir=args.nightly_subdir, send_redis=args.send_redis)
+            nightly_subdir=args.nightly_subdir, send_redis=args.send_redis,
+            one_aper=args.one_aper)

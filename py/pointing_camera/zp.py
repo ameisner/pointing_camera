@@ -7,7 +7,7 @@ import copy
 from astropy.table import Table, vstack
 
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
-            checkplot=True):
+            one_aper=False, checkplot=True):
     # quadrant = 0 means whole image (all quadrants combined)
 
     assert(time_seconds > 0)
@@ -74,14 +74,17 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
     result['fname_raw'] = [fname_im]
 
     # checkplot (eventually make this optional)
-    if checkplot and (quadrant == 0) and (aper_ind == 1):
+
+    best_aper_ind = 1 if not one_aper else 0
+
+    if checkplot and (quadrant == 0) and (aper_ind == best_aper_ind):
         plt.cla()
         plt.figure(1)
         xtitle = 'G + 0.25*(BP-RP)'
         ytitle = '-2.5' + r'$\times$' + 'log' + r'$_{10}$' + '(ADU/sec)'
         title = fname_im.split('/')[-1]
         title = title.replace('.fits', '')
-        title += '; aper1; all quads'
+        title += '; aper' + str(best_aper_ind) + '; all quads'
 
         plt.scatter(cat['G_PRIME'], m_inst, s=20, edgecolor='none',
                     facecolor='k')
@@ -113,19 +116,21 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 
     return result
     
-def calc_many_zps(cat, exp, checkplot=True):
+def calc_many_zps(cat, exp, one_aper=False, checkplot=True):
 
     print('Attempting to calculate zeropoints')
 
     par = common.pc_params()
 
+    aper_radii = par['aper_phot_objrad'] if not one_aper else [par['aper_phot_objrad_best']]
+
     results = []
     for q in [0, 1, 2, 3, 4]:
-        for aper_ind in range(len(par['aper_phot_objrad'])):
+        for aper_ind in range(len(aper_radii)):
             print('Computing zeropoint for quadrant : ', q, ' , aper ',
                   aper_ind)
             result = calc_zp(cat, aper_ind, exp.time_seconds, exp.fname_im,
-                             quadrant=q, checkplot=checkplot)
+                             quadrant=q, checkplot=checkplot, one_aper=one_aper)
             result['mjd_obs'] = exp.header['MJD-OBS']
             result['obs_night'] = exp.obs_night
             results.append(result)
