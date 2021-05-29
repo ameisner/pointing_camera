@@ -485,7 +485,7 @@ def _get_area_from_ap(ap):
 
     return area
 
-def pc_aper_phot(im, cat, one_aper=False):
+def pc_aper_phot(im, cat, one_aper=False, bg_sigclip=False):
 
     print('Attempting to do aperture photometry')
 
@@ -509,10 +509,12 @@ def pc_aper_phot(im, cat, one_aper=False):
     for mask in annulus_masks:
         annulus_data = mask.multiply(im)
         annulus_data_1d = annulus_data[mask.data > 0]
-        # this sigma_clipped_stats call is actually the slow part !!
-        ###_, median_sigclip, std_bg = sigma_clipped_stats(annulus_data_1d)
-        ###bkg_median.append(median_sigclip)
-        bkg_median.append(np.median(annulus_data_1d))
+        if bg_sigclip:
+            # this sigma_clipped_stats call is actually the slow part !!
+            _, median_sigclip, std_bg = sigma_clipped_stats(annulus_data_1d)
+            bkg_median.append(median_sigclip)
+        else:
+            bkg_median.append(np.median(annulus_data_1d))
 
     bkg_median = np.array(bkg_median)
     phot = aperture_photometry(im, apertures)
@@ -564,7 +566,7 @@ def source_raw_pixel_metrics(cat, raw):
     cat['centroid_raw_pixel_val'] = centroid_pixel_vals
     cat['centroid_pixel_saturated'] = centroid_pixel_saturated
 
-def pc_phot(exp, one_aper=False):
+def pc_phot(exp, one_aper=False, bg_sigclip=False):
     # main photometry driver; exp is a PC_exposure object
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
@@ -577,7 +579,7 @@ def pc_phot(exp, one_aper=False):
 
     cat = hstack([cat, centroids])
 
-    pc_aper_phot(exp.detrended, cat, one_aper=one_aper)
+    pc_aper_phot(exp.detrended, cat, one_aper=one_aper, bg_sigclip=bg_sigclip)
 
     # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']

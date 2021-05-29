@@ -11,7 +11,7 @@ import pointing_camera.zp as zp
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
-            one_aper=False):
+            one_aper=False, bg_sigclip=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -33,7 +33,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     sky = util.sky_summary_table(exp)
 
-    cat = util.pc_phot(exp, one_aper=one_aper)
+    cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip)
 
     zps = zp.calc_many_zps(cat, exp, one_aper=one_aper, checkplot=(not skip_checkplot))
 
@@ -95,10 +95,13 @@ if __name__ == "__main__":
     parser.add_argument('--one_aper', default=False, action='store_true',
                         help="only do aperture photometry for one aperture size")
 
+    parser.add_argument('--bg_sigclip', default=False, action='store_true',
+                        help="sigma clipping for background annulus median")
+
     args = parser.parse_args()
 
     pc_proc(args.fname_in[0], outdir=args.outdir,
             dont_write_detrended=args.dont_write_detrended,
             skip_checkplot=args.skip_checkplot,
             nightly_subdir=args.nightly_subdir, send_redis=args.send_redis,
-            one_aper=args.one_aper)
+            one_aper=args.one_aper, bg_sigclip=args.bg_sigclip)
