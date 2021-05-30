@@ -4,7 +4,7 @@ import os
 import pointing_camera.common as common
 import pointing_camera.io as io
 import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
-from astropy.table import Table, hstack
+from astropy.table import Table, hstack, vstack
 import numpy as np
 from pointing_camera.gaia import read_gaia_cat
 import time
@@ -13,6 +13,7 @@ from photutils import CircularAperture, CircularAnnulus, aperture_photometry
 import photutils
 from astropy.stats import sigma_clipped_stats
 from astropy.time import Time
+from multiprocessing import Pool
 
 def get_wcs_filename(fname_im, verify=True):
     # right now this is pretty trivial but in perhaps it could
@@ -538,6 +539,8 @@ def pc_aper_phot(im, cat, one_aper=False, bg_sigclip=False):
     dt = time.time()-t0
     print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
 
+    return cat
+
 def get_g_prime(G, BP_RP):
     # right now this is pretty much trivial but in the future it
     # could become more complex
@@ -579,7 +582,15 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat = hstack([cat, centroids])
 
-    pc_aper_phot(exp.detrended, cat, one_aper=one_aper, bg_sigclip=bg_sigclip)
+    if nmp is None:
+        cat = pc_aper_phot(exp.detrended, cat, one_aper=one_aper,
+                           bg_sigclip=bg_sigclip)
+    else:
+        p =  Pool(nmp)
+        parts = split_table(cat, nmp)
+        args = [(exp.detrended, _cat, one_aper, bg_sigclip) for _cat in parts]
+        cats = p.starmap(pc_aper_phot, args)
+        cat = vstack(cats)
 
     # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']
@@ -656,3 +667,23 @@ def send_redis(exp, zp_adu_per_s, sky_adu_per_s):
 
     r.hset(key, mapping=data)
     print('Redis data sent...')
+
+def split_table(tab, n_parts):
+    # n_parts is number of equal or nearly equal
+    # parts into which to split tab
+
+    # basically meant to be a wrapper for
+    # numpy.array_split that applies to
+    # an astropy Table rather than a numpy array
+
+    nrows = len(tab)
+
+    ind = np.arange(nrows)
+
+    # list of arrays of indices into tab
+    inds_per_part = np.array_split(ind, n_parts)
+
+    # list of tables
+    parts = [tab[_ind] for _ind in inds_per_part]
+
+    return parts
