@@ -142,34 +142,29 @@ def get_quadrant(im, q):
     return quad
 
 def quadrant_from_xy(x, y):
-    # right now not meant to be vectorized...
+    # works for array-valued x, y
 
     par = common.pc_params()
 
     half_x = par['nx']/2 - 0.5
     half_y = par['ny']/2 - 0.5
 
-    if (x <= half_x) & (y <= half_y):
-        return 3
-    if (x <= half_x) & (y > half_y):
-        return 2
-    if (x > half_x) & (y <= half_y):
-        return 4
-    if (x > half_x) & (y > half_y):
-        return 1
+    quadrant = np.zeros(len(x), dtype=int)
 
-def _loop_quadrant_from_xy(x, y):
+    quadrant[(x <= half_x) & (y <= half_y)] = 3
 
-    assert(len(x) == len(y))
-    assert(np.sum(np.logical_not(np.isfinite(x))) == 0)
-    assert(np.sum(np.logical_not(np.isfinite(y))) == 0)
+    quadrant[(x <= half_x) & (y > half_y)] = 2
 
-    quadrants = [quadrant_from_xy(*c) for c in zip(x, y)]
+    quadrant[(x > half_x) & (y <= half_y)] = 4
 
-    return np.array(quadrants)
+    quadrant[(x > half_x) & (y > half_y)] = 1
+
+    return quadrant
 
 def min_edge_dist_pix(x, y):
     # minimum distance to any image edge
+    # works for array-valued x, y
+
     min_edge_dist = 20000
 
     par = common.pc_params()
@@ -609,7 +604,7 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat['G_PRIME'] = get_g_prime(cat['PHOT_G_MEAN_MAG'], cat['BP_RP'])
 
-    cat['quadrant'] = _loop_quadrant_from_xy(cat['xcentroid'], cat['ycentroid'])
+    cat['quadrant'] = quadrant_from_xy(cat['xcentroid'], cat['ycentroid'])
 
     cat['min_edge_dist_pix'] = min_edge_dist_pix(cat['xcentroid'],
                                                  cat['ycentroid'])
