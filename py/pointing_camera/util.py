@@ -475,7 +475,10 @@ def pc_recentroid(im, cat):
 
     result['wrong_source_centroid'] = wrong_source_centroid.astype(int)
 
-    return result
+    assert(len(result) == len(cat))
+    cat = hstack([cat, result])
+
+    return cat
 
 def _get_area_from_ap(ap):
     # this is to try and work around the photutils API change
@@ -570,11 +573,7 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh, nmp=nmp)
 
-    centroids = pc_recentroid(exp.detrended, cat)
-
-    assert(len(centroids) == len(cat))
-
-    cat = hstack([cat, centroids])
+    cat = pc_recentroid(exp.detrended, cat)
 
     print('Attempting to do aperture photometry')
     t0 = time.time()
