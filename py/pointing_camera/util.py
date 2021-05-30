@@ -193,7 +193,7 @@ def subtract_dark_current(im, time_seconds):
 
     par = common.pc_params()
 
-    result = im.astype(float)
+    result = im.astype('float32')
 
     for q in [1, 2, 3, 4]:
         dark_adu = par['dark_adu_per_s_quad'][q-1]*time_seconds
@@ -209,7 +209,8 @@ def subtract_quad_offs(im):
     par = common.pc_params()
 
     # just in case this hasn't already been taken care of...
-    im = im.astype(float)
+    if im.dtype.name != 'float32':
+        im = im.astype('float32')
 
     check_image_dimensions(im)
 
@@ -241,7 +242,7 @@ def detrend_pc(exp):
 
     # final thing is to set detrended == true
 
-    im = exp.raw_image.astype(float)
+    im = exp.raw_image.astype('float32')
 
     im = subtract_quad_offs(im)
 
@@ -488,10 +489,6 @@ def _get_area_from_ap(ap):
 
 def pc_aper_phot(im, cat, one_aper=False, bg_sigclip=False):
 
-    print('Attempting to do aperture photometry')
-
-    t0 = time.time()
-
     im = im.astype(float)
 
     par = common.pc_params()
@@ -536,9 +533,6 @@ def pc_aper_phot(im, cat, one_aper=False, bg_sigclip=False):
 
     cat['flux_adu'] = flux_adu
 
-    dt = time.time()-t0
-    print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
-
     return cat
 
 def get_g_prime(G, BP_RP):
@@ -582,6 +576,8 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat = hstack([cat, centroids])
 
+    print('Attempting to do aperture photometry')
+    t0 = time.time()
     if nmp is None:
         cat = pc_aper_phot(exp.detrended, cat, one_aper=one_aper,
                            bg_sigclip=bg_sigclip)
@@ -589,8 +585,14 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
         p =  Pool(nmp)
         parts = split_table(cat, nmp)
         args = [(exp.detrended, _cat, one_aper, bg_sigclip) for _cat in parts]
+        _t0 = time.time()
         cats = p.starmap(pc_aper_phot, args)
+        _dt = time.time() - _t0
+        print(_dt, ' ', '@'*60)
         cat = vstack(cats)
+    dt = time.time() - t0
+    print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
+
 
     # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']
