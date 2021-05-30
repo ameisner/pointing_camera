@@ -31,9 +31,15 @@ def load_wcs(fname_wcs):
 
     hdul = fits.open(fname_wcs)
 
-    w = wcs.WCS(hdul[0].header)
+    header = hdul[0].header
 
-    return w, hdul[0].header
+    # somehow this both averts a warning and saves ~0.25 seconds
+    # when creating the wcs.WCS object
+    header['NAXIS'] = 2
+
+    w = wcs.WCS(header)
+
+    return w, header
 
 def load_exposure_image(fname):
     # this gets the pixel data and header for the actual pointing camera

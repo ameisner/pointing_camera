@@ -4,7 +4,6 @@ class PC_exposure:
     """Object encapsulating the contents of a single pointing camera exposure"""
 
     def __init__(self, fname_im):
-
         im, h = util.load_exposure_image(fname_im)
 
         util.check_image_dimensions(im)
@@ -24,6 +23,8 @@ class PC_exposure:
 
         # wcs filename
         self.fname_wcs = util.get_wcs_filename(fname_im)
+
+        print('WCS filename: ' + self.fname_wcs)
 
         wcs, wcs_header = util.load_wcs(self.fname_wcs)
 
