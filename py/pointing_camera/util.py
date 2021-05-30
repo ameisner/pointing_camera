@@ -170,26 +170,15 @@ def _loop_quadrant_from_xy(x, y):
 
 def min_edge_dist_pix(x, y):
     # minimum distance to any image edge
-    # for now inputs are meant to be scalar, not array/list
-
     min_edge_dist = 20000
 
     par = common.pc_params()
 
-    min_edge_dist = min(min_edge_dist, x + 0.5)
-    min_edge_dist = min(min_edge_dist, y + 0.5)
-    min_edge_dist = min(min_edge_dist, par['nx'] - 0.5 - x)
-    min_edge_dist = min(min_edge_dist, par['ny'] - 0.5 - y)
+    min_edge_dist = np.minimum(x + 0.5, y + 0.5)
+    min_edge_dist = np.minimum(min_edge_dist, par['nx'] - 0.5 - x)
+    min_edge_dist = np.minimum(min_edge_dist, par['ny'] - 0.5 - y)
 
     return min_edge_dist
-
-def _loop_min_edge_dist_pix(x, y):
-
-    assert(len(x) == len(y))
-
-    _dists = [min_edge_dist_pix(*c) for c in zip(x, y)]
-
-    return _dists
 
 def subtract_dark_current(im, time_seconds):
 
@@ -622,8 +611,8 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat['quadrant'] = _loop_quadrant_from_xy(cat['xcentroid'], cat['ycentroid'])
 
-    cat['min_edge_dist_pix'] = _loop_min_edge_dist_pix(cat['xcentroid'],
-                                                       cat['ycentroid'])
+    cat['min_edge_dist_pix'] = min_edge_dist_pix(cat['xcentroid'],
+                                                 cat['ycentroid'])
 
     cat['flux_adu_per_s'] = cat['flux_adu']/exp.time_seconds
 
