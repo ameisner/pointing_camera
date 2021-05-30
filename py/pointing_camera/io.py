@@ -26,15 +26,17 @@ def write_image_level_outputs(exp, outdir):
     hdu.writeto(outname_tmp)
     os.rename(outname_tmp, outname)
 
-def write_sky_summary(sky, exp, outdir):
 
-    print('Attempting to write sky summary table')
+def write_bintables_mef(cat, zps, sky, exp, outdir):
+    print('Attempting to write binary tables as multi-extension FITS')
+
+    # for now assume that cat, zps, sky tables all exist
 
     assert(os.path.exists(outdir))
 
     outname = (os.path.split(exp.fname_im))[-1]
 
-    outname = outname.replace('.fits', '-sky.fits')
+    outname = outname.replace('.fits', '-summary.fits')
 
     outname = os.path.join(outdir, outname)
 
@@ -43,47 +45,17 @@ def write_sky_summary(sky, exp, outdir):
     assert(not os.path.exists(outname))
     assert(not os.path.exists(outname_tmp))
 
-    sky.write(outname_tmp, format='fits')
-    os.rename(outname_tmp, outname)
+    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(),
+                              fits.BinTableHDU(data=cat),
+                              fits.BinTableHDU(data=zps),
+                              fits.BinTableHDU(data=sky)])
 
-def write_source_catalog(cat, exp, outdir):
+    hdul[1].header['EXTNAME'] = 'CATALOG'
+    hdul[2].header['EXTNAME'] = 'ZEROPOINTS'
+    hdul[3].header['EXTNAME'] = 'SKY'
 
-    print('Attempting to write source catalog')
+    hdul.writeto(outname_tmp)
 
-    assert(os.path.exists(outdir))
-
-    outname = (os.path.split(exp.fname_im))[-1]
-
-    outname = outname.replace('.fits', '-catalog.fits')
-
-    outname = os.path.join(outdir, outname)
-
-    outname_tmp = outname + '.tmp'
-
-    assert(not os.path.exists(outname))
-    assert(not os.path.exists(outname_tmp))
-
-    cat.write(outname_tmp, format='fits')
-    os.rename(outname_tmp, outname)
-
-def write_zeropoints_table(zps, exp, outdir):
-
-    print('Attempting to write zeropoints table')
-
-    assert(os.path.exists(outdir))
-
-    outname = (os.path.split(exp.fname_im))[-1]
-
-    outname = outname.replace('.fits', '-zeropoints.fits')
-
-    outname = os.path.join(outdir, outname)
-
-    outname_tmp = outname + '.tmp'
-
-    assert(not os.path.exists(outname))
-    assert(not os.path.exists(outname_tmp))
-
-    zps.write(outname_tmp, format='fits')
     os.rename(outname_tmp, outname)
 
 def load_static_badpix():

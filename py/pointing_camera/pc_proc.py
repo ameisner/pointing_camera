@@ -54,9 +54,10 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         if not dont_write_detrended:
             io.write_image_level_outputs(exp, outdir)
 
-        io.write_sky_summary(sky, exp, outdir)
-        io.write_source_catalog(cat, exp, outdir)
-        io.write_zeropoints_table(zps, exp, outdir)
+        # if options are added to skip certain steps
+        # (like sky mag estimation), this will need
+        # to be adjusted accordingly
+        io.write_bintables_mef(cat, zps, sky, exp, outdir)
 
         if not skip_checkplot:
             io.save_zp_checkplot(exp, outdir)
