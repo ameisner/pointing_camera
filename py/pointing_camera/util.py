@@ -203,7 +203,7 @@ def subtract_dark_current(im, time_seconds):
 
     for q in [1, 2, 3, 4]:
         dark_adu = par['dark_adu_per_s_quad'][q-1]*time_seconds
-        print('quadrant : ', q, ', dark counts/pix : ', dark_adu)
+        print('quadrant : ', q, ', dark counts/pix : ', '{:.3f}'.format(dark_adu))
 
         p = quad_pix_limits(q)
 
