@@ -8,6 +8,7 @@ from pointing_camera.exposure import PC_exposure
 import pointing_camera.util as util
 import pointing_camera.io as io
 import pointing_camera.zp as zp
+import common
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
@@ -102,6 +103,12 @@ if __name__ == "__main__":
                         help="number of threads for multiprocessing")
 
     args = parser.parse_args()
+
+    # basic checks on requested number of multiprocessing threads
+    if args.multiproc is not None:
+        par = common.pc_params()
+        assert(args.multiproc > 1)
+        assert(args.multiproc <= par['ncpus'])
 
     pc_proc(args.fname_in[0], outdir=args.outdir,
             dont_write_detrended=args.dont_write_detrended,

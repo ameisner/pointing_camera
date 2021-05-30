@@ -20,6 +20,7 @@ def pc_params():
            'aper_phot_objrad_best' :  2.5,
            'annulus_radii' : [12.0, 20.0],
            'bp_rp_coeff' : 0.25,
-           'raw_satur_val': 16383}
+           'raw_satur_val': 16383,
+           'ncpus': 8}
 
     return par
