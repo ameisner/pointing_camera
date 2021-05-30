@@ -54,14 +54,14 @@ def check_image_dimensions(image):
     # of particular relevance is not getting fooled by downbinned data
 
     print('Checking raw pointing camera image dimensions...')
-    
+
     par = common.pc_params()
 
     sh = image.shape
 
     assert(sh[0] == par['ny'])
     assert(sh[1] == par['nx'])
-    
+
     print('Raw pointing camera image has correct dimensions')
 
 def get_exptime(h_im, milliseconds=False):
@@ -157,7 +157,7 @@ def _loop_quadrant_from_xy(x, y):
     assert(len(x) == len(y))
     assert(np.sum(np.logical_not(np.isfinite(x))) == 0)
     assert(np.sum(np.logical_not(np.isfinite(y))) == 0)
-    
+
     quadrants = [quadrant_from_xy(*c) for c in zip(x, y)]
 
     return np.array(quadrants)
@@ -263,7 +263,7 @@ def sky_metrics(im):
     assert(len(sz) == 2)
 
     im_sorted = np.ravel(im)
-    
+
     sind = np.argsort(im_sorted)
 
     im_sorted = im_sorted[sind]
@@ -325,7 +325,7 @@ def sky_summary_table(exp):
         qmed = qmetrics['median']
         qmean = qmetrics['sky_clipped_mean']
         qmeds.append(qmed)
-        
+
         t['median_adu_quad' + str(q)] = [qmed]
 
         t['median_adu_quad' + str(q) + '_per_s'] = [qmed/exp.time_seconds]
@@ -685,5 +685,12 @@ def split_table(tab, n_parts):
 
     # list of tables
     parts = [tab[_ind] for _ind in inds_per_part]
+
+    # consistency check
+    _nrows = 0
+    for part in parts:
+        _nrows += len(part)
+
+    assert(nrows == _nrows)
 
     return parts
