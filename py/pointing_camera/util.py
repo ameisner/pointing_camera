@@ -436,9 +436,6 @@ def pc_recentroid(im, cat):
 
     qmaxshift = np.zeros(len(cat), dtype=int)
 
-    print('Recentroiding...')
-    t0 = time.time()
-
     for i in range(len(cat)):
         _xcen, _ycen, q = djs_photcen(cat['x_gaia_guess'][i],
                                       cat['y_gaia_guess'][i], im, cbox=8,
@@ -446,9 +443,6 @@ def pc_recentroid(im, cat):
         xcen[i] = _xcen
         ycen[i] = _ycen
         qmaxshift[i] = q
-
-    dt = time.time()-t0
-    print('recentroiding took ', '{:.3f}'.format(dt), ' seconds')
 
     result = Table()
 
@@ -469,15 +463,10 @@ def pc_recentroid(im, cat):
 def flag_wrong_centroids(cat, full_cat):
     wrong_source_centroid = np.zeros(len(cat), dtype=bool)
 
-    print('Attempting to flag wrong centroids...')
-
-    t0 = time.time()
     for i in range(len(cat)):
         _dist = np.sqrt(np.power(full_cat['x_gaia_guess'] - cat['xcentroid'][i], 2) + np.power(full_cat['y_gaia_guess'] - cat['ycentroid'][i], 2))
         indmin = np.argmin(_dist)
         wrong_source_centroid[i] = (full_cat[indmin]['SOURCE_ID'] != cat[i]['SOURCE_ID'])
-
-    dt = time.time()-t0
 
     cat['wrong_source_centroid'] = wrong_source_centroid.astype(int)
 
@@ -576,6 +565,8 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh, nmp=nmp)
 
+    print('Recentroiding...')
+    t0 = time.time()
     if nmp is None:
         cat = pc_recentroid(exp.detrended, cat)
     else:
@@ -586,6 +577,11 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
         cat = vstack(cats)
         del p
 
+    dt = time.time()-t0
+    print('recentroiding took ', '{:.3f}'.format(dt), ' seconds')
+
+    print('Attempting to flag wrong centroids...')
+    t0 = time.time()
     if nmp is None:
         cat = flag_wrong_centroids(cat, cat)
     else:
@@ -595,6 +591,8 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
         cats = p.starmap(flag_wrong_centroids, args)
         cat = vstack(cats)
         del p
+    dt = time.time()-t0
+    print('flagging wrong centroids took ', '{:.3f}'.format(dt), ' seconds')
 
     print('Attempting to do aperture photometry')
     t0 = time.time()
