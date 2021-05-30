@@ -461,22 +461,25 @@ def pc_recentroid(im, cat):
 
     result['centroid_shift_flag'] = (np.abs(result['x_shift']) > cmaxshift) | (np.abs(result['y_shift']) > cmaxshift) | (qmaxshift != 0)
 
-    wrong_source_centroid = np.zeros(len(result), dtype=bool)
+    assert(len(result) == len(cat))
+    cat = hstack([cat, result])
+
+    return cat
+
+def flag_wrong_centroids(cat):
+    wrong_source_centroid = np.zeros(len(cat), dtype=bool)
 
     print('Attempting to flag wrong centroids...')
 
     t0 = time.time()
-    for i in range(len(result)):
-        _dist = np.sqrt(np.power(cat['x_gaia_guess'] - result['xcentroid'][i], 2) + np.power(cat['y_gaia_guess'] - result['ycentroid'][i], 2))
+    for i in range(len(cat)):
+        _dist = np.sqrt(np.power(cat['x_gaia_guess'] - cat['xcentroid'][i], 2) + np.power(cat['y_gaia_guess'] - cat['ycentroid'][i], 2))
         indmin = np.argmin(_dist)
         wrong_source_centroid[i] = (indmin != i)
 
     dt = time.time()-t0
 
-    result['wrong_source_centroid'] = wrong_source_centroid.astype(int)
-
-    assert(len(result) == len(cat))
-    cat = hstack([cat, result])
+    cat['wrong_source_centroid'] = wrong_source_centroid.astype(int)
 
     return cat
 
@@ -573,7 +576,18 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
 
     cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh, nmp=nmp)
 
-    cat = pc_recentroid(exp.detrended, cat)
+    if nmp is None:
+        cat = pc_recentroid(exp.detrended, cat)
+    else:
+        p =  Pool(nmp)
+        parts = split_table(cat, nmp)
+        args = [(exp.detrended, _cat) for _cat in parts]
+        cats = p.starmap(pc_recentroid, args)
+        cat = vstack(cats)
+        del p
+
+    # remember to use multiprocessing for this as well
+    cat = flag_wrong_centroids(cat)
 
     print('Attempting to do aperture photometry')
     t0 = time.time()
@@ -584,10 +598,7 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
         p =  Pool(nmp)
         parts = split_table(cat, nmp)
         args = [(exp.detrended, _cat, one_aper, bg_sigclip) for _cat in parts]
-        _t0 = time.time()
         cats = p.starmap(pc_aper_phot, args)
-        _dt = time.time() - _t0
-        print(_dt, ' ', '@'*60)
         cat = vstack(cats)
     dt = time.time() - t0
     print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
