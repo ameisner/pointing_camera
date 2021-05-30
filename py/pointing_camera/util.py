@@ -466,16 +466,16 @@ def pc_recentroid(im, cat):
 
     return cat
 
-def flag_wrong_centroids(cat):
+def flag_wrong_centroids(cat, full_cat):
     wrong_source_centroid = np.zeros(len(cat), dtype=bool)
 
     print('Attempting to flag wrong centroids...')
 
     t0 = time.time()
     for i in range(len(cat)):
-        _dist = np.sqrt(np.power(cat['x_gaia_guess'] - cat['xcentroid'][i], 2) + np.power(cat['y_gaia_guess'] - cat['ycentroid'][i], 2))
+        _dist = np.sqrt(np.power(full_cat['x_gaia_guess'] - cat['xcentroid'][i], 2) + np.power(full_cat['y_gaia_guess'] - cat['ycentroid'][i], 2))
         indmin = np.argmin(_dist)
-        wrong_source_centroid[i] = (indmin != i)
+        wrong_source_centroid[i] = (full_cat[indmin]['SOURCE_ID'] != cat[i]['SOURCE_ID'])
 
     dt = time.time()-t0
 
@@ -586,8 +586,15 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
         cat = vstack(cats)
         del p
 
-    # remember to use multiprocessing for this as well
-    cat = flag_wrong_centroids(cat)
+    if nmp is None:
+        cat = flag_wrong_centroids(cat, cat)
+    else:
+        p =  Pool(nmp)
+        parts = split_table(cat, nmp)
+        args = [(_cat, cat) for _cat in parts]
+        cats = p.starmap(flag_wrong_centroids, args)
+        cat = vstack(cats)
+        del p
 
     print('Attempting to do aperture photometry')
     t0 = time.time()
