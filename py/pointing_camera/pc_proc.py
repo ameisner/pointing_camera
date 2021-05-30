@@ -36,6 +36,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip, nmp=nmp)
 
+    # intentionally don't pass nmp to zps.calc_many_zp, since doing
+    # so didn't appear to provide any speed-up; could revisit later
     zps = zp.calc_many_zps(cat, exp, one_aper=one_aper, checkplot=(not skip_checkplot))
 
     if write_outputs:
@@ -66,7 +68,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
           ' seconds')
     print('pointing camera reduction pipeline completed at: ' +
-          str(datetime.utcnow()) + ' UTC') 
+          str(datetime.utcnow()) + ' UTC')
 
 if __name__ == "__main__":
     descr = 'run the pointing camera reduction pipeline on an exposure'

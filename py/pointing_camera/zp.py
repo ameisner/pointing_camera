@@ -5,14 +5,17 @@ import matplotlib.pyplot as plt
 import pointing_camera.common as common
 import copy
 from astropy.table import Table, vstack
+from multiprocessing import Pool
 
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
             one_aper=False, checkplot=True):
     # quadrant = 0 means whole image (all quadrants combined)
 
+    print('Computing zeropoint for quadrant : ', quadrant, ' , aper ', aper_ind)
+
     assert(time_seconds > 0)
     assert(quadrant in [0, 1, 2, 3, 4]) # note the 0 option here...
-    
+
     par = common.pc_params()
 
     n_aper = len(par['aper_phot_objrad'])
@@ -43,11 +46,11 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 
     diff = cat['G_PRIME'] - m_inst
     nf = np.sum(np.isfinite(diff))
-    
+
     zp = np.nanmedian(diff)
 
     resid = diff - zp
-    
+
     # now calculate robust sigma about the median zeropoint offset
 
     # at first glance argsort appears to put NaN's at end of sorted array
@@ -115,8 +118,8 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
         plt.ylabel(ytitle)
 
     return result
-    
-def calc_many_zps(cat, exp, one_aper=False, checkplot=True):
+
+def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
 
     print('Attempting to calculate zeropoints')
 
@@ -124,17 +127,22 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True):
 
     aper_radii = par['aper_phot_objrad'] if not one_aper else [par['aper_phot_objrad_best']]
 
-    results = []
+    args = []
     for q in [0, 1, 2, 3, 4]:
         for aper_ind in range(len(aper_radii)):
-            print('Computing zeropoint for quadrant : ', q, ' , aper ',
-                  aper_ind)
-            result = calc_zp(cat, aper_ind, exp.time_seconds, exp.fname_im,
-                             quadrant=q, checkplot=checkplot, one_aper=one_aper)
-            result['mjd_obs'] = exp.header['MJD-OBS']
-            result['obs_night'] = exp.obs_night
-            results.append(result)
+            args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, checkplot, one_aper))
+
+    if nmp is not None:
+        p = Pool(min(nmp, len(args)))
+        results = p.starmap(calc_zp, args)
+    else:
+        results = [calc_zp(*_arg) for _arg in args]
 
     results = vstack(results)
+    results['mjd_obs'] = exp.header['MJD-OBS']
+    results['obs_night'] = exp.obs_night
+
+    sind = np.argsort(1000*results['quadrant'] + results['aper_ind'])
+    results = results[sind]
 
     return results
