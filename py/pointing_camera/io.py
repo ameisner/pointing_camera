@@ -16,7 +16,7 @@ def write_image_level_outputs(exp, outdir):
     outname = outname.replace('.fits', '-detrended.fits')
 
     outname = os.path.join(outdir, outname)
-    
+
     outname_tmp = outname + '.tmp'
 
     assert(not os.path.exists(outname))
@@ -37,7 +37,7 @@ def write_sky_summary(sky, exp, outdir):
     outname = outname.replace('.fits', '-sky.fits')
 
     outname = os.path.join(outdir, outname)
-    
+
     outname_tmp = outname + '.tmp'
 
     assert(not os.path.exists(outname))
