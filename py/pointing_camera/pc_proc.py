@@ -12,7 +12,7 @@ import common
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
-            one_aper=False, bg_sigclip=False, nmp=None):
+            one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -34,7 +34,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     sky = util.sky_summary_table(exp)
 
-    cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip, nmp=nmp)
+    cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip, nmp=nmp, max_n_stars=max_n_stars)
 
     # intentionally don't pass nmp to zps.calc_many_zp, since doing
     # so didn't appear to provide any speed-up; could revisit later
@@ -105,6 +105,9 @@ if __name__ == "__main__":
     parser.add_argument('--multiproc', default=None, type=int,
                         help="number of threads for multiprocessing")
 
+    parser.add_argument('--max_n_stars', default=3000, type=int,
+                        help="limit analysis to brightest max_n_stars Gaia stars")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -118,4 +121,4 @@ if __name__ == "__main__":
             skip_checkplot=args.skip_checkplot,
             nightly_subdir=args.nightly_subdir, send_redis=args.send_redis,
             one_aper=args.one_aper, bg_sigclip=args.bg_sigclip,
-            nmp=args.multiproc)
+            nmp=args.multiproc, max_n_stars=args.max_n_stars)

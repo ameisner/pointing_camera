@@ -562,12 +562,12 @@ def source_raw_pixel_metrics(cat, raw):
     cat['centroid_raw_pixel_val'] = centroid_pixel_vals
     cat['centroid_pixel_saturated'] = centroid_pixel_saturated
 
-def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None):
+def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000):
     # main photometry driver; exp is a PC_exposure object
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
 
-    cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh, nmp=nmp)
+    cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh, nmp=nmp, max_n_stars=max_n_stars)
 
     print('Recentroiding...')
     t0 = time.time()
