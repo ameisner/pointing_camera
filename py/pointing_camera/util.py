@@ -365,7 +365,7 @@ def xy_subsamp_grid():
 
     return xgrid, ygrid
 
-def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0, nmp=None):
+def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0, nmp=None, max_n_stars=3000):
     # wcs should be an astropy WCS object
 
     print('Reading Gaia DR2 catalogs...')
@@ -398,6 +398,20 @@ def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0, nmp=None):
     cat = Table(cat)
     cat['x_gaia_guess'] = x_gaia_guess
     cat['y_gaia_guess'] = y_gaia_guess
+
+    if len(cat) > max_n_stars:
+        # retain brightest max_n_stars
+        # it'd be better to do this cut based on
+        # 'G_PRIME', the color-corrected pointing
+        # camera Gaia-based mag
+        # in the future can evaluate trying to spread the
+        # selected max_n_stars evenly across quadrants
+        # (could imagine a pathological case with e.g., a
+        # globular cluster in the FOV)
+        print('Restricting to the brightest ' + str(max_n_stars) + \
+              ' of ' + str(len(cat)) + ' stars')
+        sind = np.argsort(cat['PHOT_G_MEAN_MAG'])
+        cat = cat[sind[0:max_n_stars]]
 
     return cat
 
