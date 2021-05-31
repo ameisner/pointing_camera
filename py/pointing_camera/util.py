@@ -366,13 +366,14 @@ def xy_subsamp_grid():
     return xgrid, ygrid
 
 
-def pc_gaia_cat(wcs, exp, mag_thresh=None, edge_pad_pix=0, nmp=None, 
+def pc_gaia_cat(exp, mag_thresh=None, edge_pad_pix=0, nmp=None,
                 max_n_stars=3000, pm_corr=False):
-    # wcs should be an astropy WCS object
 
     print('Reading Gaia DR2 catalogs...')
 
     xgrid, ygrid = xy_subsamp_grid()
+
+    wcs = exp.wcs
 
     # last arg is 0 rather than 1 because that's what agrees with IDL
     ra, dec = wcs.all_pix2world(xgrid, ygrid, 0)
@@ -600,7 +601,7 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
 
-    cat = pc_gaia_cat(exp.wcs, exp, mag_thresh=mag_thresh, nmp=nmp,
+    cat = pc_gaia_cat(exp, mag_thresh=mag_thresh, nmp=nmp,
                       max_n_stars=max_n_stars, pm_corr=pm_corr)
 
     print('Recentroiding...')
