@@ -365,7 +365,9 @@ def xy_subsamp_grid():
 
     return xgrid, ygrid
 
-def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0, nmp=None, max_n_stars=3000):
+
+def pc_gaia_cat(wcs, exp, mag_thresh=None, edge_pad_pix=0, nmp=None, 
+                max_n_stars=3000, pm_corr=False):
     # wcs should be an astropy WCS object
 
     print('Reading Gaia DR2 catalogs...')
@@ -381,6 +383,9 @@ def pc_gaia_cat(wcs, mag_thresh=None, edge_pad_pix=0, nmp=None, max_n_stars=3000
         keep = (cat['PHOT_G_MEAN_MAG'] <= mag_thresh)
         assert(np.sum(keep) > 0)
         cat = cat[keep]
+
+    if pm_corr:
+        gaia_pm_corr(cat, exp.header['MJD-OBS'])
 
     x_gaia_guess, y_gaia_guess = wcs.all_world2pix(cat['RA'], cat['DEC'], 0)
 
@@ -562,12 +567,41 @@ def source_raw_pixel_metrics(cat, raw):
     cat['centroid_raw_pixel_val'] = centroid_pixel_vals
     cat['centroid_pixel_saturated'] = centroid_pixel_saturated
 
-def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000):
+def gaia_pm_corr(cat, pc_mjd):
+    # leave Gaia (RA, DEC) unchanged in cases lacking full
+    # five-parameter astrometric solution
+    # when Gaia (PMRA, PMDEC) are available, correct
+    # Gaia (RA, DEC) to pc_mjd epoch
+    # don't do anything about parallax given how large the
+    # the pointing camera pixels are...
+
+    # 'cat' gets modified
+
+    print('Correcting Gaia positions for proper motion when possible')
+
+    # epoch for Gaia DR2 (RA, DEC) values
+    mjd_gaia = 57205.625
+
+     # should probably add some sort of check(s) on pc_mjd
+     # to catch e.g., cases of it somehow being 0 or a JD somehow
+
+    ra_corr = cat['RA'] + ((pc_mjd - mjd_gaia)/365.25)*cat['PMRA']/(np.cos(cat['DEC']/(180.0/np.pi))*3600.0*1000.0)
+    dec_corr = cat['DEC'] + ((pc_mjd - mjd_gaia)/365.25)*cat['PMDEC']/(3600.0*1000.0)
+
+    full_solution = np.isfinite(cat['PMRA'])
+
+    # RA, DEC columns get overwritten
+    cat['RA'][full_solution] = ra_corr[full_solution]
+    cat['DEC'][full_solution] = dec_corr[full_solution]
+
+def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
+            pm_corr=False):
     # main photometry driver; exp is a PC_exposure object
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
 
-    cat = pc_gaia_cat(exp.wcs, mag_thresh=mag_thresh, nmp=nmp, max_n_stars=max_n_stars)
+    cat = pc_gaia_cat(exp.wcs, exp, mag_thresh=mag_thresh, nmp=nmp,
+                      max_n_stars=max_n_stars, pm_corr=pm_corr)
 
     print('Recentroiding...')
     t0 = time.time()
