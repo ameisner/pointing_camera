@@ -12,12 +12,6 @@ files_processed = []
 
 def _reduce_new_files(flist_wcs, outdir='.'):
 
-    # time to allow (seconds) between WCS file existing and being completely
-    # written ; intended to be generous
-
-    write_wait = 1.5
-    time.sleep(write_wait)
-
     for f_wcs in flist_wcs:
         # check that the corresponding .fits raw image exists
         # if there's a .wcs file with no corresponding raw .fits image
@@ -53,6 +47,11 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.'):
         print('No data to reduce yet...')
         return
 
+    # dereference symlink to get actual location on disk
+    # believe that this will crash if non-symlink name
+    # is sent to os.readlink
+    flist_wcs = [os.readlink(_f) for _f in flist_wcs]
+
     flist_wcs_new = set(flist_wcs) - set(files_processed)
 
     if len(flist_wcs_new) > 0:
@@ -62,7 +61,6 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.'):
         _reduce_new_files(flist_wcs_new, outdir=outdir)
 
         files_processed = files_processed + flist_wcs_new
-        
 
 def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.'):
 
@@ -94,7 +92,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--data_dir', default=default_data_dir, type=str,
                         help="directory with raw images and WCS files")
-    
+
     parser.add_argument('--outdir', default='.', type=str,
                         help="directory to write pipeline outputs in")
 
