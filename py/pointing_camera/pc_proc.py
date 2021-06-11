@@ -8,7 +8,7 @@ from pointing_camera.exposure import PC_exposure
 import pointing_camera.util as util
 import pointing_camera.io as io
 import pointing_camera.zp as zp
-import common
+import pointing_camera.common as common
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
@@ -66,7 +66,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             io.save_zp_checkplot(exp, outdir)
 
         if send_redis:
-            util.send_redis(exp, zps[(zps['aper_ind'] == 1) & (zps['quadrant'] == 0)]['zp_adu_per_s'][0], sky['mean_adu_per_s'][0])
+            print('Attempting to send results to redis...')
+            _aper_ind = 0 if one_aper else 1
+            util.send_redis(exp, zps[(zps['aper_ind'] == _aper_ind) & (zps['quadrant'] == 0)]['zp_adu_per_s'][0], sky['mean_adu_per_s'][0])
 
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
