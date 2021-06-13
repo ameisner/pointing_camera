@@ -614,7 +614,8 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
         args = [(exp.detrended, _cat) for _cat in parts]
         cats = p.starmap(pc_recentroid, args)
         cat = vstack(cats)
-        del p
+        p.close()
+        p.join()
 
     dt = time.time()-t0
     print('recentroiding took ', '{:.3f}'.format(dt), ' seconds')
@@ -629,7 +630,9 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
         args = [(_cat, cat) for _cat in parts]
         cats = p.starmap(flag_wrong_centroids, args)
         cat = vstack(cats)
-        del p
+        p.close()
+        p.join()
+
     dt = time.time()-t0
     print('flagging wrong centroids took ', '{:.3f}'.format(dt), ' seconds')
 
@@ -644,6 +647,9 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
         args = [(exp.detrended, _cat, one_aper, bg_sigclip) for _cat in parts]
         cats = p.starmap(pc_aper_phot, args)
         cat = vstack(cats)
+        p.close()
+        p.join()
+
     dt = time.time() - t0
     print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
 
@@ -705,6 +711,10 @@ def send_redis(exp, zp_adu_per_s, sky_adu_per_s):
     timestamp = exp.header['DATE'].replace(' ', '').replace('/', '-') + '/' + \
                 exp.header['TIME'].replace(' ', '') + '/MST/'
 
+    # should think about potential failure modes here,
+    # like MJD-OBS being empty in the header
+    mjd_obs = float(exp.header['MJD-OBS'])
+
     print('Redis timestamp = ' + timestamp)
 
     host = os.environ['REDISHOST']
@@ -717,7 +727,8 @@ def send_redis(exp, zp_adu_per_s, sky_adu_per_s):
 
     data = {'timestamp': timestamp,
             'zp_adu_per_s': zp_adu_per_s,
-            'sky_adu_per_s': sky_adu_per_s}
+            'sky_adu_per_s': sky_adu_per_s,
+            'mjd_obs': mjd_obs}
 
     print(data)
 

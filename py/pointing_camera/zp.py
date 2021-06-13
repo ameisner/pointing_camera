@@ -135,6 +135,8 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
     if nmp is not None:
         p = Pool(min(nmp, len(args)))
         results = p.starmap(calc_zp, args)
+        p.close()
+        p.join()
     else:
         results = [calc_zp(*_arg) for _arg in args]
 

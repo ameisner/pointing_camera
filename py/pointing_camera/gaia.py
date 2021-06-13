@@ -20,9 +20,9 @@ from multiprocessing import Pool
 nside = 32
 
 def gaia_chunknames(ipix):
-    # could add checks to make sure that all ipix values are 
+    # could add checks to make sure that all ipix values are
     # sane HEALPix pixel indices
-    # RIGHT NOW THIS ASSUMES IPIX IS AN ARRAY !! 
+    # RIGHT NOW THIS ASSUMES IPIX IS AN ARRAY !!
     # should eventually make this also work for scalar ipix
 
     par = common.pc_params()
@@ -50,6 +50,8 @@ def read_gaia_cat(ra, dec, nmp=None):
     if nmp is not None:
         p = Pool(nmp)
         tablist = p.map(fits.getdata, flist)
+        p.close()
+        p.join()
     else:
         for f in flist:
             print('READING : ', f)
