@@ -48,9 +48,7 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.'):
         return
 
     # dereference symlink to get actual location on disk
-    # believe that this will crash if non-symlink name
-    # is sent to os.readlink
-    flist_wcs = [os.readlink(_f) for _f in flist_wcs]
+    flist_wcs = [(os.readlink(_f) if os.path.islink(_f) else _f) for _f in flist_wcs]
 
     flist_wcs_new = set(flist_wcs) - set(files_processed)
 
