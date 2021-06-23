@@ -730,10 +730,17 @@ def send_redis(exp, zp_info, sky_info):
     print('Attempting to connect with Redis...')
     r = redis.Redis(host=host, port=port, db=db)
 
+    # should be careful about e.g., NaN values in quantities
+    # sent to Redis; not sure what happens in such cases
     data = {'timestamp': timestamp,
             'zp_adu_per_s': zp_adu_per_s,
             'sky_adu_per_s': sky_adu_per_s,
-            'mjd_obs': mjd_obs}
+            'mjd_obs': mjd_obs,
+            'n_stars_for_zp': int(zp_info['n_sources_for_zp']),
+            'sky_adu_per_s_q1': sky_info['mean_adu_quad1_per_s'],
+            'sky_adu_per_s_q2': sky_info['mean_adu_quad2_per_s'],
+            'sky_adu_per_s_q3': sky_info['mean_adu_quad3_per_s'],
+            'sky_adu_per_s_q4': sky_info['mean_adu_quad4_per_s']}
 
     print(data)
 
