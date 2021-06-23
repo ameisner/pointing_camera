@@ -620,22 +620,6 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
     dt = time.time()-t0
     print('recentroiding took ', '{:.3f}'.format(dt), ' seconds')
 
-    print('Attempting to flag wrong centroids...')
-    t0 = time.time()
-    if nmp is None:
-        cat = flag_wrong_centroids(cat, cat)
-    else:
-        p =  Pool(nmp)
-        parts = split_table(cat, nmp)
-        args = [(_cat, cat) for _cat in parts]
-        cats = p.starmap(flag_wrong_centroids, args)
-        cat = vstack(cats)
-        p.close()
-        p.join()
-
-    dt = time.time()-t0
-    print('flagging wrong centroids took ', '{:.3f}'.format(dt), ' seconds')
-
     print('Attempting to do aperture photometry')
     t0 = time.time()
     if nmp is None:
@@ -653,6 +637,21 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
     dt = time.time() - t0
     print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
 
+    print('Attempting to flag wrong centroids...')
+    t0 = time.time()
+    if nmp is None:
+        cat = flag_wrong_centroids(cat, cat)
+    else:
+        p =  Pool(nmp)
+        parts = split_table(cat, nmp)
+        args = [(_cat, cat) for _cat in parts]
+        cats = p.starmap(flag_wrong_centroids, args)
+        cat = vstack(cats)
+        p.close()
+        p.join()
+
+    dt = time.time()-t0
+    print('flagging wrong centroids took ', '{:.3f}'.format(dt), ' seconds')
 
     # add columns for quadrant, min_edge_dist_pix, BP-RP, m_inst, g_prime
     cat['BP_RP'] = cat['PHOT_BP_MEAN_MAG'] - cat['PHOT_RP_MEAN_MAG']
