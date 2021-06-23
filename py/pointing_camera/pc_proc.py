@@ -68,7 +68,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         if send_redis:
             print('Attempting to send results to redis...')
             _aper_ind = 0 if one_aper else 1
-            util.send_redis(exp, zps[(zps['aper_ind'] == _aper_ind) & (zps['quadrant'] == 0)][0], sky[0])
+            util.send_redis(exp, zps[zps['aper_ind'] == _aper_ind], sky[0])
 
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
