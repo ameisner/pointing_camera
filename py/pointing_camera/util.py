@@ -704,7 +704,9 @@ def get_obs_night(date_string_local, time_string_local):
 
         return date_string_yesterday
 
-def send_redis(exp, zp_adu_per_s, sky_adu_per_s):
+def send_redis(exp, zp_info, sky_info):
+
+    # zp_info, sky_info are each one table row
 
     import redis
 
@@ -714,6 +716,9 @@ def send_redis(exp, zp_adu_per_s, sky_adu_per_s):
     # should think about potential failure modes here,
     # like MJD-OBS being empty in the header
     mjd_obs = float(exp.header['MJD-OBS'])
+
+    zp_adu_per_s = zp_info['zp_adu_per_s']
+    sky_adu_per_s = sky_info['mean_adu_per_s']
 
     print('Redis timestamp = ' + timestamp)
 
