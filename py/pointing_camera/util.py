@@ -595,6 +595,20 @@ def gaia_pm_corr(cat, pc_mjd):
     cat['RA'][full_solution] = ra_corr[full_solution]
     cat['DEC'][full_solution] = dec_corr[full_solution]
 
+def recentroid_and_photometer(im, cat, one_aper=False, bg_sigclip=False):
+
+    # wrapper that sequentially does recentroiding
+    # and aperture photometry by calling pc_recentroid
+    # and then pc_aper_phot
+    # expect that im would typically be the full detrended pointing
+    #    camera image
+
+    cat = pc_recentroid(im, cat)
+
+    cat = pc_aper_phot(im, cat, one_aper=one_aper, bg_sigclip=bg_sigclip)
+
+    return cat
+
 def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False):
     # main photometry driver; exp is a PC_exposure object
@@ -604,38 +618,22 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
     cat = pc_gaia_cat(exp, mag_thresh=mag_thresh, nmp=nmp,
                       max_n_stars=max_n_stars, pm_corr=pm_corr)
 
-    print('Recentroiding...')
+    print('Recentroiding and aperture photometering...')
     t0 = time.time()
     if nmp is None:
-        cat = pc_recentroid(exp.detrended, cat)
+        cat = recentroid_and_photometer(exp.detrended, cat, one_aper=one_aper,
+                                        bg_sigclip=bg_sigclip)
     else:
         p =  Pool(nmp)
         parts = split_table(cat, nmp)
-        args = [(exp.detrended, _cat) for _cat in parts]
-        cats = p.starmap(pc_recentroid, args)
+        args = [(exp.detrended, _cat, one_aper, bg_sigclip) for _cat in parts]
+        cats = p.starmap(recentroid_and_photometer, args)
         cat = vstack(cats)
         p.close()
         p.join()
 
     dt = time.time()-t0
-    print('recentroiding took ', '{:.3f}'.format(dt), ' seconds')
-
-    print('Attempting to do aperture photometry')
-    t0 = time.time()
-    if nmp is None:
-        cat = pc_aper_phot(exp.detrended, cat, one_aper=one_aper,
-                           bg_sigclip=bg_sigclip)
-    else:
-        p =  Pool(nmp)
-        parts = split_table(cat, nmp)
-        args = [(exp.detrended, _cat, one_aper, bg_sigclip) for _cat in parts]
-        cats = p.starmap(pc_aper_phot, args)
-        cat = vstack(cats)
-        p.close()
-        p.join()
-
-    dt = time.time() - t0
-    print('aperture photometry took ', '{:.3f}'.format(dt), ' seconds')
+    print('recentroiding and photometry took ', '{:.3f}'.format(dt), ' seconds')
 
     print('Attempting to flag wrong centroids...')
     t0 = time.time()
