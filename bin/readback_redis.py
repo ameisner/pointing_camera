@@ -18,5 +18,5 @@ for i in range(300):
     time.sleep(delay_seconds)
     data = r.hgetall(key)
 
-    print(data[b'timestamp'].decode(), float(data[b'zp_adu_per_s']), float(data[b'sky_adu_per_s']), i)
+    print(data[b'timestamp'].decode(), float(data[b'zp_adu_per_s']), float(data[b'sky_adu_per_s']), float(data[b'mjd_obs']), i)
 
