@@ -17,7 +17,7 @@ files_processed = []
 skies_table = None
 zps_table = None
 
-def sky_subplot(tab, xticklabels=True, mjdrange=None):
+def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20):
 
     # build a list of datetime objects
 
@@ -31,8 +31,16 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None):
     #plt.scatter(tab['MJD_OBS'], tab['MEAN_ADU'], s=10, edgecolor='none')
 
     # forgot to add column for MEAN_ADU_PER_S during reductions !!!!!!!
-    plt.scatter(datetimes, -2.5*np.log10(tab['mean_adu']/tab['time_seconds']),
-                edgecolor='none', s=20, c='b')
+
+    colors = ['b', 'm', 'r', 'g', 'c']
+    
+    for q in [4, 3, 2, 1, 0]:
+        colname = 'mean_adu_'
+        if q != 0:
+            colname += 'quad' + str(q) + '_'
+        colname += 'per_s'
+        plt.scatter(datetimes, -2.5*np.log10(tab[colname]),
+                    edgecolor='none', s=markersize, c=colors[q])
 
     plt.ylabel(r'$-2.5\times$' + 'log' + r'$_{10}$' + '(ADU/pix/s)',
                fontsize=12)
@@ -51,16 +59,22 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None):
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
 
-def zp_subplot(tab, xticklabels=False, mjdrange=None):
+def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20):
 
     print(tab.columns)
-    datetimes = []
-    for t in tab:
-        tm = Time(t['mjd_obs'], format='mjd')
-        datetimes.append(tm.to_datetime())
 
-    plt.scatter(datetimes, tab['zp_adu_per_s'],
-                edgecolor='none', s=20, c='b')
+    colors = ['b', 'm', 'r', 'g', 'c']
+
+    for q in [4, 3, 2, 1, 0]:
+        _tab = tab[tab['quadrant'] == q]
+        datetimes = []
+        for t in _tab:
+            tm = Time(t['mjd_obs'], format='mjd')
+            datetimes.append(tm.to_datetime())
+
+        plt.scatter(datetimes,
+                    _tab['zp_adu_per_s'],
+                    edgecolor='none', s=markersize, c=colors[q])
 
     ax = plt.gca()
     xfmt = md.DateFormatter('%H:%M')
@@ -77,28 +91,36 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None):
     
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
-    
-def _twopanel(skies_table, zps_table, clobber=True, mjdrange=None):
+
+def _twopanel(skies_table, zps_table, clobber=True, save=True,
+              markersize=20):
+
+    mjdrange = [min(np.min(zps_table['mjd_obs']),
+                    np.min(skies_table['mjd_obs'])),
+                max(np.max(zps_table['mjd_obs']),
+                    np.max(skies_table['mjd_obs']))]
 
     plt.subplot(2, 1, 1)
-    zp_subplot(zps_table, mjdrange=mjdrange)
+    zp_subplot(zps_table, mjdrange=mjdrange, markersize=markersize)
     
     plt.subplot(2, 1, 2)
-    sky_subplot(skies_table, mjdrange=mjdrange)
+    sky_subplot(skies_table, mjdrange=mjdrange, markersize=markersize)
 
     # how to force the sky and zp panels to have the same
     # range of x values ... could imagine it getting confusing
     # if for whatever reason their x axes get out of alignment
-    outname = 'night.png'
+
+    if save:
+        outname = 'night.png'
 
     # mainly for debugging purposes
-    if not clobber:
-        t = time.time()
-        outname = outname.replace('.png', str(round(t)) + '.png')
+        if not clobber:
+            t = time.time()
+            outname = outname.replace('.png', str(round(t)) + '.png')
 
-    plt.savefig(outname, dpi=200, bbox_inches='tight')
+        plt.savefig(outname, dpi=200, bbox_inches='tight')
 
-def _read_concat_tables(flist):
+def _read_concat_tables(flist, ext=1):
 
     assert(len(flist) > 0)
 
@@ -106,7 +128,7 @@ def _read_concat_tables(flist):
     for i, f in enumerate(flist):
         print('READING: ' + f, ' ; ', i+1, ' of ', len(flist))
         assert(os.path.exists(f))
-        t = Table(fits.getdata(f))
+        t = Table(fits.getdata(f, ext=ext))
         if t[0]['mjd_obs'] != 0:
             tables.append(t)
 
@@ -164,11 +186,6 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', clobber=True):
     files_processed = flist_sky + flist_zp # what if a file gets deleted though?
 
     if (len(flist_sky_new) > 0) or (len(flist_zeropoints_new) > 0):
-
-        mjdrange = [min(np.min(zps_table['mjd_obs']),
-                        np.min(skies_table['mjd_obs'])),
-                    max(np.max(zps_table['mjd_obs']),
-                        np.max(skies_table['mjd_obs']))]
         plt.cla()
         _twopanel(skies_table, zps_table, clobber=clobber, mjdrange=mjdrange)
     else:
