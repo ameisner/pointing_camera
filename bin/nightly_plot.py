@@ -19,8 +19,9 @@ zps_table = None
 
 def quadrant_colors():
     # meant to be a small utility
+    # quadrant 0 means all 4 quadrants combined
 
-    colors = ['b', 'm', 'r', 'g', 'c']
+    colors = {0: 'b', 1: 'm', 2: 'r', 3: 'g', 4: 'c'}
 
     return colors
 
