@@ -38,3 +38,23 @@ def proc_1night(year, month, day):
                              send_redis=False, one_aper=True)
         except:
             print('PROCESSING FAILURE: ' + f)
+
+if __name__ == "__main__":
+    descr = 'process one night worth of pointing camera astrometry mode images'
+
+    parser = argparse.ArgumentParser(description=descr)
+
+    parser.add_argument('night', type=str, nargs=1,
+                        help="observing night in YYYYMMDD format")
+
+    args = parser.parse_args()
+
+    night = args.night[0]
+
+    assert(len(night) == 8)
+
+    year = night[0:4]
+    month = night[4:6]
+    day = night[6:8]
+
+    proc_1night(year, month, day)
