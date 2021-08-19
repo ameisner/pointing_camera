@@ -17,6 +17,13 @@ files_processed = []
 skies_table = None
 zps_table = None
 
+def quadrant_colors():
+    # meant to be a small utility
+
+    colors = ['b', 'm', 'r', 'g', 'c']
+
+    return colors
+
 def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20):
 
     # build a list of datetime objects
@@ -32,8 +39,8 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20):
 
     # forgot to add column for MEAN_ADU_PER_S during reductions !!!!!!!
 
-    colors = ['b', 'm', 'r', 'g', 'c']
-    
+    colors = quadrant_colors()
+
     for q in [4, 3, 2, 1, 0]:
         colname = 'mean_adu_'
         if q != 0:
@@ -63,7 +70,7 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20):
 
     print(tab.columns)
 
-    colors = ['b', 'm', 'r', 'g', 'c']
+    colors = quadrant_colors()
 
     for q in [4, 3, 2, 1, 0]:
         _tab = tab[tab['quadrant'] == q]
