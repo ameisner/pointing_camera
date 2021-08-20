@@ -9,18 +9,16 @@ import gfa_utils
 basedir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/proc_1night'
 
 def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
-                       skip_q0=False, gfa_fwhm=False):
+                       skip_q0=False, use_gfa=False):
 
     plt.cla()
-
-    use_gfa = gfa_fwhm # will become more useful later
 
     if use_gfa:
         gfa = gfa_utils.read_gfa()
         gfa = gfa[gfa['NIGHT'] == int(night)]
         assert(len(gfa) > 0)
     
-    n_panels = 2 + int(gfa_fwhm)
+    n_panels = 2 + int(use_gfa)*2
 
     width_inches = 6.4
     height_inches = 2.8*n_panels
@@ -63,8 +61,14 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
 
     if use_gfa:
         plt.subplot(n_panels, 1, 3)
-        gfa_utils.plot_gfa_fwhm(gfa, markersize=markersize,
-                                mjdrange=mjdrange, title_extra=title_extra)
+        gfa_utils.plot_gfa(gfa, markersize=markersize,
+                           mjdrange=mjdrange, title_extra=title_extra,
+                           colname='TRANSPARENCY', xticklabels=False,
+                           do_xlabel=False)
+        plt.subplot(n_panels, 1, 4)
+        gfa_utils.plot_gfa(gfa, markersize=markersize,
+                           mjdrange=mjdrange, title_extra=title_extra,
+                           colname='FWHM_ASEC')
 
     fig = plt.gcf()
 
