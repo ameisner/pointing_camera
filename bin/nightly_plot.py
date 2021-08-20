@@ -26,7 +26,7 @@ def quadrant_colors():
     return colors
 
 def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
-                title_extra='', skip_q0=False):
+                title_extra='', skip_q0=False, do_xlabel=True):
 
     # build a list of datetime objects
 
@@ -55,7 +55,9 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
 
     plt.ylabel(r'$-2.5\times$' + 'log' + r'$_{10}$' + '(ADU/pix/s)',
                fontsize=12)
-    plt.xlabel(r'time (UT)', fontsize=12)
+
+    if do_xlabel:
+        plt.xlabel(r'time (UT)', fontsize=12)
 
     if mjdrange is not None:
         date_min = Time(mjdrange[0] - 0.01, format='mjd').to_datetime()
