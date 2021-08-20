@@ -17,17 +17,19 @@ def read_gfa():
     return tab
     
 
-def plot_gfa_fwhm(gfa, markersize=2, mjdrange=None, xticklabels=True,
-                  do_xlabel=True, title_extra=''):
+def plot_gfa(gfa, markersize=2, mjdrange=None, xticklabels=True,
+             do_xlabel=True, title_extra='', colname='FWHM_ASEC'):
 
     assert(len(np.unique(gfa['NIGHT'])) == 1)
+
+    assert(colname in ['FWHM_ASEC', 'TRANSPARENCY'])
 
     datetimes = []
     for row in gfa:
         tm = Time(row['MJD'], format='mjd')
         datetimes.append(tm.to_datetime())
 
-    plt.scatter(datetimes, gfa['FWHM_ASEC'],
+    plt.scatter(datetimes, gfa[colname],
                 edgecolor='none', s=markersize, c='k')
 
 
@@ -36,15 +38,20 @@ def plot_gfa_fwhm(gfa, markersize=2, mjdrange=None, xticklabels=True,
         date_max = Time(mjdrange[1] + 0.01, format='mjd').to_datetime()
         plt.xlim((date_min, date_max))
 
-    plt.ylim((0, 3.5))
+    ylim = {'FWHM_ASEC': (0, 3.5), 'TRANSPARENCY': (0, 1.2)}
+
+    plt.ylim(ylim[colname])
 
     ax = plt.gca()
     xfmt = md.DateFormatter('%H:%M')
     ax.xaxis.set_major_formatter(xfmt)
     title = 'DESI GFA' + title_extra
 
+    ylabel = {'FWHM_ASEC': 'r band FWHM (asec)',
+              'TRANSPARENCY': 'r band transparency'}
 
-    plt.ylabel('r band FWHM (asec)')
+    plt.ylabel(ylabel[colname])
+
     plt.title(title)
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
