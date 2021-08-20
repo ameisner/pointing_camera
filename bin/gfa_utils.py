@@ -18,7 +18,7 @@ def read_gfa():
     
 
 def plot_gfa_fwhm(gfa, markersize=2, mjdrange=None, xticklabels=True,
-                  do_xlabel=True):
+                  do_xlabel=True, title_extra=''):
 
     assert(len(np.unique(gfa['NIGHT'])) == 1)
 
@@ -41,7 +41,7 @@ def plot_gfa_fwhm(gfa, markersize=2, mjdrange=None, xticklabels=True,
     ax = plt.gca()
     xfmt = md.DateFormatter('%H:%M')
     ax.xaxis.set_major_formatter(xfmt)
-    title = 'DESI GFA' # + title_extra
+    title = 'DESI GFA' + title_extra
 
 
     plt.ylabel('r band FWHM (asec)')

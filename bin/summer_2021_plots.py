@@ -63,7 +63,8 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
 
     if use_gfa:
         plt.subplot(n_panels, 1, 3)
-        gfa_utils.plot_gfa_fwhm(gfa, markersize=markersize, mjdrange=mjdrange)
+        gfa_utils.plot_gfa_fwhm(gfa, markersize=markersize,
+                                mjdrange=mjdrange, title_extra=title_extra)
 
     fig = plt.gcf()
 
