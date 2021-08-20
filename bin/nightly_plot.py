@@ -25,7 +25,8 @@ def quadrant_colors():
 
     return colors
 
-def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20):
+def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
+                title_extra=''):
 
     # build a list of datetime objects
 
@@ -63,11 +64,13 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20):
     xfmt = md.DateFormatter('%H:%M')
     ax.xaxis.set_major_formatter(xfmt)
     #ax.legend(['sky brightness'])
-    plt.title('pointing camera sky brightness')
+    title = 'pointing camera sky brightness' + title_extra
+    plt.title(title)
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
 
-def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20):
+def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
+               title_extra=''):
 
     print(tab.columns)
 
@@ -88,7 +91,10 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20):
     xfmt = md.DateFormatter('%H:%M')
     ax.xaxis.set_major_formatter(xfmt)
     #ax.legend(['zeropoint'], loc='lower right')
-    plt.title('pointing camera zeropoint')
+
+    title = 'pointing camera zeropoint'
+    title += title_extra
+    plt.title(title)
 
     plt.ylabel('zeropoint (G' + r"$'$" + ' ; 1 ADU/s)')
 
@@ -101,7 +107,7 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20):
         ax.axes.xaxis.set_ticklabels([])
 
 def _twopanel(skies_table, zps_table, clobber=True, save=True,
-              markersize=20):
+              markersize=20, title_extra=''):
 
     mjdrange = [min(np.min(zps_table['mjd_obs']),
                     np.min(skies_table['mjd_obs'])),
@@ -109,10 +115,12 @@ def _twopanel(skies_table, zps_table, clobber=True, save=True,
                     np.max(skies_table['mjd_obs']))]
 
     plt.subplot(2, 1, 1)
-    zp_subplot(zps_table, mjdrange=mjdrange, markersize=markersize)
+    zp_subplot(zps_table, mjdrange=mjdrange, markersize=markersize,
+               title_extra=title_extra)
     
     plt.subplot(2, 1, 2)
-    sky_subplot(skies_table, mjdrange=mjdrange, markersize=markersize)
+    sky_subplot(skies_table, mjdrange=mjdrange, markersize=markersize,
+                title_extra=title_extra)
 
     # how to force the sky and zp panels to have the same
     # range of x values ... could imagine it getting confusing
