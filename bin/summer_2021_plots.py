@@ -48,6 +48,10 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
                 max(np.max(zps['mjd_obs']),
                     np.max(skies['mjd_obs']))]
 
+    if use_gfa:
+        mjdrange[0] = min(mjdrange[0], min(gfa['MJD']))
+        mjdrange[1] = max(mjdrange[1], max(gfa['MJD']))
+
     plt.subplot(n_panels, 1, 1)
     zp_subplot(zps, mjdrange=mjdrange, markersize=markersize,
                title_extra=title_extra, skip_q0=skip_q0)
