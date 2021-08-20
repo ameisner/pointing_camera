@@ -26,7 +26,7 @@ def quadrant_colors():
     return colors
 
 def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
-                title_extra=''):
+                title_extra='', skip_q0=False):
 
     # build a list of datetime objects
 
@@ -44,6 +44,8 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
     colors = quadrant_colors()
 
     for q in [4, 3, 2, 1, 0]:
+        if (q == 0) and (skip_q0):
+            continue
         colname = 'mean_adu_'
         if q != 0:
             colname += 'quad' + str(q) + '_'
@@ -70,13 +72,15 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
         ax.axes.xaxis.set_ticklabels([])
 
 def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
-               title_extra=''):
+               title_extra='', skip_q0=False):
 
     print(tab.columns)
 
     colors = quadrant_colors()
 
     for q in [4, 3, 2, 1, 0]:
+        if (q == 0) and (skip_q0):
+            continue
         _tab = tab[tab['quadrant'] == q]
         datetimes = []
         for t in _tab:
@@ -107,7 +111,7 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
         ax.axes.xaxis.set_ticklabels([])
 
 def _twopanel(skies_table, zps_table, clobber=True, save=True,
-              markersize=20, title_extra=''):
+              markersize=20, title_extra='', skip_q0=False):
 
     mjdrange = [min(np.min(zps_table['mjd_obs']),
                     np.min(skies_table['mjd_obs'])),
@@ -116,11 +120,11 @@ def _twopanel(skies_table, zps_table, clobber=True, save=True,
 
     plt.subplot(2, 1, 1)
     zp_subplot(zps_table, mjdrange=mjdrange, markersize=markersize,
-               title_extra=title_extra)
+               title_extra=title_extra, skip_q0=skip_q0)
     
     plt.subplot(2, 1, 2)
     sky_subplot(skies_table, mjdrange=mjdrange, markersize=markersize,
-                title_extra=title_extra)
+                title_extra=title_extra, skip_q0=skip_q0)
 
     # how to force the sky and zp panels to have the same
     # range of x values ... could imagine it getting confusing

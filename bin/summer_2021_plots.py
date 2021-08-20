@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 
 basedir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/proc_1night'
 
-def _twopanel_1night(night, basedir=basedir, markersize=10, save=False):
+def _twopanel_1night(night, basedir=basedir, markersize=10, save=False,
+                     skip_q0=False):
 
     plt.cla()
 
@@ -27,15 +28,18 @@ def _twopanel_1night(night, basedir=basedir, markersize=10, save=False):
 
     title_extra = ' ; ' + night
     _twopanel(skies, zps, clobber=True, save=False, markersize=markersize,
-              title_extra=title_extra)
+              title_extra=title_extra, skip_q0=skip_q0)
 
     if save:
-        outname = 'pointing_camera-' + night + '.png'
+        outname = 'pointing_camera-' + night
+        if skip_q0:
+            outname += '-no_q0'
+        outname += '.png'
         plt.savefig(outname, dpi=200, bbox_inches='tight')
     else:
         plt.show()
 
-def summer_2021_nightly_plots(markersize=2):
+def summer_2021_nightly_plots(markersize=2, skip_q0=False):
 
     nights = glob.glob(os.path.join(basedir, '????????'))
 
@@ -45,6 +49,6 @@ def summer_2021_nightly_plots(markersize=2):
     
     for night in nights:
         _twopanel_1night(night, basedir=basedir, markersize=markersize,
-                         save=True)
+                         save=True, skip_q0=skip_q0)
 
 
