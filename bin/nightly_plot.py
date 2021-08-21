@@ -77,8 +77,6 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
 def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
                title_extra='', skip_q0=False):
 
-    print(tab.columns)
-
     colors = quadrant_colors()
 
     for q in [4, 3, 2, 1, 0]:

@@ -33,6 +33,14 @@ def plot_gfa(gfa, markersize=2, mjdrange=None, xticklabels=True,
                 edgecolor='none', s=markersize, c='k')
 
 
+    if colname == 'TRANSPARENCY':
+        bad_diq = (gfa['FWHM_ASEC'] >= 2)
+        if np.sum(bad_diq) > 0:
+            plt.scatter(np.array(datetimes)[bad_diq],
+                        gfa['TRANSPARENCY'][bad_diq],
+                        edgecolor='none', s=markersize, c='r')
+
+
     if mjdrange is not None:
         date_min = Time(mjdrange[0] - 0.01, format='mjd').to_datetime()
         date_max = Time(mjdrange[1] + 0.01, format='mjd').to_datetime()
