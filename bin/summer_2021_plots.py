@@ -10,7 +10,8 @@ import sky_mon
 basedir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/proc_1night'
 
 def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
-                       skip_q0=False, use_gfa=False, use_skymon=False):
+                       skip_q0=False, use_gfa=False, use_skymon=False,
+                       nmp=None):
 
     plt.cla()
 
@@ -35,8 +36,8 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
 
     flist.sort()
 
-    skies = _read_concat_tables(flist, ext=3)
-    zps = _read_concat_tables(flist, ext=2)
+    skies = _read_concat_tables(flist, ext=3, nmp=nmp)
+    zps = _read_concat_tables(flist, ext=2, nmp=nmp)
 
     title_extra = ' ; ' + night
     #_twopanel(skies, zps, clobber=True, save=False, markersize=markersize,
@@ -102,7 +103,7 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
         plt.show()
 
 def summer_2021_nightly_plots(markersize=2, skip_q0=False, use_gfa=False,
-                              use_skymon=False):
+                              use_skymon=False, nmp=None):
 
     nights = glob.glob(os.path.join(basedir, '????????'))
 
@@ -113,6 +114,6 @@ def summer_2021_nightly_plots(markersize=2, skip_q0=False, use_gfa=False,
     for night in nights:
         _multipanel_1night(night, basedir=basedir, markersize=markersize,
                            save=True, skip_q0=skip_q0, use_gfa=use_gfa,
-                           use_skymon=use_skymon)
+                           use_skymon=use_skymon, nmp=nmp)
 
 

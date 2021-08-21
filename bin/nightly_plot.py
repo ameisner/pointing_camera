@@ -10,6 +10,7 @@ import glob
 import time
 from astropy.table import Table, vstack
 import os
+from multiprocessing import Pool
 
 default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/reduced/v0005' # NERSC
 
@@ -142,18 +143,30 @@ def _twopanel(skies_table, zps_table, clobber=True, save=True,
 
         plt.savefig(outname, dpi=200, bbox_inches='tight')
 
-def _read_concat_tables(flist, ext=1):
+def _read_one_table(fname, ext):
+    print('READING: ' + fname)
+    assert(os.path.exists(fname))
+    t = Table(fits.getdata(fname, ext=ext))
+
+    return t
+    
+def _read_concat_tables(flist, ext=1, nmp=None):
 
     assert(len(flist) > 0)
 
-    tables = []
-    for i, f in enumerate(flist):
-        print('READING: ' + f, ' ; ', i+1, ' of ', len(flist))
-        assert(os.path.exists(f))
-        t = Table(fits.getdata(f, ext=ext))
-        if t[0]['mjd_obs'] != 0:
-            tables.append(t)
-
+    if nmp is None:
+        tables = []
+        for i, f in enumerate(flist):
+            t = _read_one_table(f, ext)
+            if t[0]['mjd_obs'] != 0:
+                tables.append(t)
+    else:
+        print('Reading tables in parallel...')
+        p = Pool(nmp)
+        args = [(f, ext) for f in flist]
+        tables = p.starmap(_read_one_table, args)
+        p.close()
+                
     print('Attempting to append tables...')
     if len(tables) == 1:
         result = tables[0]
