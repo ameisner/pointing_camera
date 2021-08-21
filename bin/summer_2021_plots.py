@@ -52,29 +52,33 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
         mjdrange[0] = min(mjdrange[0], min(gfa['MJD']))
         mjdrange[1] = max(mjdrange[1], max(gfa['MJD']))
 
-    plt.subplot(n_panels, 1, 1)
-    zp_subplot(zps, mjdrange=mjdrange, markersize=markersize,
-               title_extra=title_extra, skip_q0=skip_q0)
+    ct = 0
 
-    plt.subplot(n_panels, 1, 2)
-    sky_subplot(skies, mjdrange=mjdrange, markersize=markersize,
-                title_extra=title_extra, skip_q0=skip_q0,
-                do_xlabel=(not use_gfa), xticklabels=(not use_gfa))
-
-    ct = 2
     if use_gfa:
-        ct += 1
-        plt.subplot(n_panels, 1, ct)
-        gfa_utils.plot_gfa(gfa, markersize=markersize,
-                           mjdrange=mjdrange, title_extra=title_extra,
-                           colname='TRANSPARENCY', xticklabels=False,
-                           do_xlabel=False)
         ct += 1
         plt.subplot(n_panels, 1, ct)
         gfa_utils.plot_gfa(gfa, markersize=markersize,
                            mjdrange=mjdrange, title_extra=title_extra,
                            colname='FWHM_ASEC', do_xlabel=(not use_skymon),
                            xticklabels=(not use_skymon))
+
+        ct += 1
+        plt.subplot(n_panels, 1, ct)
+        gfa_utils.plot_gfa(gfa, markersize=markersize,
+                           mjdrange=mjdrange, title_extra=title_extra,
+                           colname='TRANSPARENCY', xticklabels=False,
+                           do_xlabel=False)
+
+    ct += 1
+    plt.subplot(n_panels, 1, ct)
+    zp_subplot(zps, mjdrange=mjdrange, markersize=markersize,
+               title_extra=title_extra, skip_q0=skip_q0)
+
+    ct += 1
+    plt.subplot(n_panels, 1, ct)
+    sky_subplot(skies, mjdrange=mjdrange, markersize=markersize,
+                title_extra=title_extra, skip_q0=skip_q0,
+                do_xlabel=(not use_gfa), xticklabels=(not use_gfa))
 
     if use_skymon:
         ct += 1
