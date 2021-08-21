@@ -5,11 +5,12 @@ import glob
 import os
 import matplotlib.pyplot as plt
 import gfa_utils
+import sky_mon
 
 basedir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/proc_1night'
 
 def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
-                       skip_q0=False, use_gfa=False):
+                       skip_q0=False, use_gfa=False, use_skymon=False):
 
     plt.cla()
 
@@ -18,7 +19,7 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
         gfa = gfa[gfa['NIGHT'] == int(night)]
         assert(len(gfa) > 0)
     
-    n_panels = 2 + int(use_gfa)*2
+    n_panels = 2 + int(use_gfa)*2 + int(use_skymon)
 
     width_inches = 6.4
     height_inches = 2.8*n_panels
@@ -59,17 +60,28 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
                 title_extra=title_extra, skip_q0=skip_q0,
                 do_xlabel=(not use_gfa), xticklabels=(not use_gfa))
 
+    ct = 2
     if use_gfa:
-        plt.subplot(n_panels, 1, 3)
+        ct += 1
+        plt.subplot(n_panels, 1, ct)
         gfa_utils.plot_gfa(gfa, markersize=markersize,
                            mjdrange=mjdrange, title_extra=title_extra,
                            colname='TRANSPARENCY', xticklabels=False,
                            do_xlabel=False)
-        plt.subplot(n_panels, 1, 4)
+        ct += 1
+        plt.subplot(n_panels, 1, ct)
         gfa_utils.plot_gfa(gfa, markersize=markersize,
                            mjdrange=mjdrange, title_extra=title_extra,
-                           colname='FWHM_ASEC')
+                           colname='FWHM_ASEC', do_xlabel=(not use_skymon),
+                           xticklabels=(not use_skymon))
 
+    if use_skymon:
+        ct += 1
+        plt.subplot(n_panels, 1, ct)
+        # DO NOT FACTOR RANGE OF SKY MON MJD VALUES INTO mjdrange !
+        sky_mon.plot_sky_mon(night, mjdrange, xticklabels=True,
+                             title_extra=title_extra, do_xlabel=True)
+        
     fig = plt.gcf()
 
     fig.set_size_inches(width_inches, height_inches)
@@ -82,21 +94,25 @@ def _multipanel_1night(night, basedir=basedir, markersize=10, save=False,
             outname += '-no_q0'
         if use_gfa:
             outname += '-gfa'
+        if use_skymon:
+            outname += '-skymon'
         outname += '.png'
         plt.savefig(outname, dpi=200, bbox_inches='tight')
     else:
         plt.show()
 
-def summer_2021_nightly_plots(markersize=2, skip_q0=False):
+def summer_2021_nightly_plots(markersize=2, skip_q0=False, use_gfa=False,
+                              use_skymon=False):
 
     nights = glob.glob(os.path.join(basedir, '????????'))
 
     nights = [os.path.split(night)[-1] for night in nights]
 
     nights.sort()
-    
+
     for night in nights:
         _multipanel_1night(night, basedir=basedir, markersize=markersize,
-                           save=True, skip_q0=skip_q0)
+                           save=True, skip_q0=skip_q0, use_gfa=use_gfa,
+                           use_skymon=use_skymon)
 
 
