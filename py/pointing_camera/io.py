@@ -27,7 +27,7 @@ def write_image_level_outputs(exp, outdir):
     os.rename(outname_tmp, outname)
 
 
-def write_bintables_mef(cat, zps, sky, exp, outdir, header):
+def write_bintables_mef(cat, zps, sky, exp, outdir):
     print('Attempting to write binary tables as multi-extension FITS')
 
     # for now assume that cat, zps, sky tables all exist
@@ -45,10 +45,10 @@ def write_bintables_mef(cat, zps, sky, exp, outdir, header):
     assert(not os.path.exists(outname))
     assert(not os.path.exists(outname_tmp))
 
-    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(header=header),
-                              fits.BinTableHDU(data=cat, header=header),
-                              fits.BinTableHDU(data=zps, header=header),
-                              fits.BinTableHDU(data=sky, header=header)])
+    hdul = fits.HDUList(hdus=[fits.PrimaryHDU(header=exp.header),
+                              fits.BinTableHDU(data=cat, header=exp.header),
+                              fits.BinTableHDU(data=zps, header=exp.header),
+                              fits.BinTableHDU(data=sky, header=exp.header)])
 
     hdul[1].header['EXTNAME'] = 'CATALOG'
     hdul[2].header['EXTNAME'] = 'ZEROPOINTS'

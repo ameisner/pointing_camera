@@ -60,7 +60,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         # if options are added to skip certain steps
         # (like sky mag estimation), this will need
         # to be adjusted accordingly
-        io.write_bintables_mef(cat, zps, sky, exp, outdir, exp.header)
+        io.write_bintables_mef(cat, zps, sky, exp, outdir)
 
         if not skip_checkplot:
             io.save_zp_checkplot(exp, outdir)
