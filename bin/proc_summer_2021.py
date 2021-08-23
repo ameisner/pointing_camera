@@ -9,7 +9,9 @@ import numpy as np
 
 default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/el_nino'
 
-def _proc_many_exp(flist, indstart, nproc):
+default_outdir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/summer_2021/v0001'
+
+def _proc_many_exp(flist, indstart, nproc, outdir=default_outdir):
     n_all = len(flist)
 
     assert(indstart < n_all)
@@ -21,8 +23,6 @@ def _proc_many_exp(flist, indstart, nproc):
 
         assert(os.path.exists(f))
 
-        outdir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/airmass'
-
         try:
             pipeline.pc_proc(f, outdir=outdir, dont_write_detrended=True,
                              skip_checkplot=False, nightly_subdir=True,
@@ -31,7 +31,7 @@ def _proc_many_exp(flist, indstart, nproc):
             print('PROCESSING FAILURE: ' + f)
 
 def _load_flist():
-    fname = 'summer_2021_wcs_solutions.txt'
+    fname = '/global/homes/a/ameisner/pointing_camera/bin/summer_2021_wcs_solutions.txt'
 
     flist = np.genfromtxt(fname, dtype='U')
 
@@ -55,6 +55,9 @@ if __name__ == "__main__":
     parser.add_argument('nproc', type=int, nargs=1,
                         help="number of files to process")
 
+    parser.add_argument('--outdir', type=str, default=default_outdir,
+                        help="base output directory")
+
     args = parser.parse_args()
 
     indstart = args.indstart[0]
@@ -62,4 +65,4 @@ if __name__ == "__main__":
 
     flist = _load_flist()
 
-    _proc_many_exp(flist, indstart, nproc)
+    _proc_many_exp(flist, indstart, nproc, outdir=args.outdir)
