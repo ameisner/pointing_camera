@@ -75,7 +75,7 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
         ax.axes.xaxis.set_ticklabels([])
 
 def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
-               title_extra='', skip_q0=False):
+               title_extra='', skip_q0=False, do_xlabel=False):
 
     colors = quadrant_colors()
 
@@ -111,6 +111,9 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
     if not xticklabels:
         ax.axes.xaxis.set_ticklabels([])
 
+    if do_xlabel:
+        plt.xlabel(r'time (UT)', fontsize=12)
+
 def _twopanel(skies_table, zps_table, clobber=True, save=True,
               markersize=20, title_extra='', skip_q0=False):
 
@@ -144,7 +147,17 @@ def _twopanel(skies_table, zps_table, clobber=True, save=True,
 def _read_one_table(fname, ext):
     print('READING: ' + fname)
     assert(os.path.exists(fname))
-    t = Table(fits.getdata(fname, ext=ext))
+    t, h = fits.getdata(fname, ext=ext, header=True)
+
+    t = Table(t)
+
+    if 'AIRMASS' in h:
+        if h['AIRMASS'] is not None:
+            t['airmass'] = h['AIRMASS']
+        else:
+            t['airmass'] = -1
+    else:
+        t['airmass'] = -1
 
     return t
     
