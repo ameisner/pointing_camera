@@ -21,6 +21,7 @@ def pc_params():
            'annulus_radii' : [12.0, 20.0],
            'bp_rp_coeff' : 0.25,
            'raw_satur_val': 16383,
-           'ncpus': 8}
+           'ncpus': 8,
+           'desi_radius_pix': 665.49217}
 
     return par
