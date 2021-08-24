@@ -9,6 +9,8 @@ import imageio
 from pointing_camera.exposure import PC_exposure
 import pointing_camera.util as util
 from scipy.stats import scoreatpercentile
+import pointing_camera.common as common
+import matplotlib.pyplot as plt
 
 desidir = '/global/cfs/cdirs/desi/spectro/data'
 lostfound = '/global/cfs/cdirs/desi/spectro/staging/lost+found'
@@ -131,6 +133,7 @@ def one_pc_rendering(fname):
 
     sh = exp.detrended.shape
     im = rebin(exp.detrended, (int(sh[0]/binfac), int(sh[1]/binfac)))
+    sh = im.shape
     
     # figure out the stretch (should this be held constant across frames??)
     limits = scoreatpercentile(np.ravel(im), [1, 99])
@@ -138,9 +141,33 @@ def one_pc_rendering(fname):
     im[im < limits[0]] = limits[0]
     im[im > limits[1]] = limits[1]
 
-    im -= limits[0]
-    
     # overplot approximate DESI FOV to guide the eye
+    par = common.pc_params()
+    
+    ybox = np.arange(sh[0]*sh[1], dtype=int) // sh[1]
+    xbox = np.arange(sh[0]*sh[1], dtype=int) % sh[1]
+
+    xbox = xbox.astype('float')
+    ybox = ybox.astype('float')
+
+    x_center = (sh[1] // 2) - 0.5*((sh[1] % 2) == 0)
+    y_center = (sh[0] // 2) - 0.5*((sh[0] % 2) == 0)
+
+    print(x_center, y_center)
+
+    xbox -= x_center
+    ybox -= y_center
+
+    xbox = xbox.reshape(sh)
+    ybox = ybox.reshape(sh)
+
+    dist = np.sqrt(np.power(xbox, 2) + np.power(ybox, 2))
+
+    mask = np.abs(dist - par['desi_radius_pix']/binfac) < 1
+
+    im[mask] = limits[1]
+
+    im -= limits[0]
 
     return im
 
