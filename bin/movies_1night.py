@@ -57,9 +57,10 @@ def guide_cube_mjd_ranges(night):
         for extname in extnames:
             if extname in hdul:
                 tab = hdul[extname].data
+                # discard acquisition image ; could crash if guide 'cube'
+                # has exactly one frame
+                tab = tab[1:]
                 expid = (os.path.split(f)[-1]).replace('guide-', '').replace('.fits.fz', '')
-                # seems like I should discard the acq image when
-                # determining MJDMIN
                 result = (f, np.min(tab['MJD-OBS']), np.max(tab['MJD-OBS']),
                           extname, expid)
                 results.append(result)
@@ -104,7 +105,8 @@ def pointing_camera_index(night):
             continue
 
         if 'MJD-OBS' in h:
-            result = (f, h['MJD-OBS'])
+            tai_utc_offs = 37.0/(24.0*3600.0) # in days
+            result = (f, h['MJD-OBS'] - tai_utc_offs)
             results.append(result)
         else:
             print(f + ' does not have MJD-OBS??')
