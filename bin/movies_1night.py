@@ -10,7 +10,6 @@ from pointing_camera.exposure import PC_exposure
 import pointing_camera.util as util
 from scipy.stats import scoreatpercentile
 import pointing_camera.common as common
-import matplotlib.pyplot as plt
 
 desidir = '/global/cfs/cdirs/desi/spectro/data'
 lostfound = '/global/cfs/cdirs/desi/spectro/staging/lost+found'
@@ -163,7 +162,7 @@ def one_pc_rendering(fname):
 
     dist = np.sqrt(np.power(xbox, 2) + np.power(ybox, 2))
 
-    mask = np.abs(dist - par['desi_radius_pix']/binfac) < 1
+    mask = np.abs(dist - par['desi_radius_pix']/binfac) < 0.5
 
     im[mask] = limits[1]
 
