@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import astropy.io.fits as fits
 import numpy as np
 import os
@@ -152,8 +153,6 @@ def one_pc_rendering(fname):
     x_center = (sh[1] // 2) - 0.5*((sh[1] % 2) == 0)
     y_center = (sh[0] // 2) - 0.5*((sh[0] % 2) == 0)
 
-    print(x_center, y_center)
-
     xbox -= x_center
     ybox -= y_center
 
@@ -170,10 +169,8 @@ def one_pc_rendering(fname):
 
     return im
 
-def desi_exp_movie(mjdrange, expid, pc_index, fps=5):
+def desi_exp_movie(mjdrange, expid, pc_index, fps=5, outdir='.'):
     '''make an animation of pointing camera images during one DESI exposure'''
-
-    outdir = '.' # generalize this later...
 
     print('Working on DESI exposure ', expid)
 
@@ -199,7 +196,7 @@ def desi_exp_movie(mjdrange, expid, pc_index, fps=5):
     # use imageio to create the GIF, specifying an FPS value
     imageio.mimsave(outname, ims, fps=10)
 
-def movies_1night(night):
+def movies_1night(night, outdir='.'):
     '''generate all the per DESI exposure animations for one night'''
 
     pc = pointing_camera_index(night)
@@ -216,4 +213,36 @@ def movies_1night(night):
         # at some point could try to take into account the
         # *ending* MJD (rather than starting MJD) of the final guide frame
         mjdrange = (cube['MJDMIN'], cube['MJDMAX'])
-        desi_exp_movie(mjdrange, cube['EXPID'], pc)
+        desi_exp_movie(mjdrange, cube['EXPID'], pc, outdir=outdir)
+
+if __name__ == "__main__":
+    descr = 'pointing camera movies for one night worth of DESI guiding'
+
+    parser = argparse.ArgumentParser(description=descr)
+
+    parser.add_argument('night', type=str, nargs=1,
+                        help="observing night in YYYYMMDD format")
+
+    parser.add_argument('--outdir', type=str, default='.',
+                        help="output directory")
+
+    parser.add_argument('--nightly_subdir', default=False,
+                        action='store_true',
+                        help="make nightly subdirectory for GIFs")
+
+    args = parser.parse_args()
+
+    night = args.night[0]
+
+    assert(len(night) == 8)
+
+    outdir = args.outdir
+
+    assert(os.path.exists(outdir))
+    
+    if args.nightly_subdir:
+        outdir = os.path.join(outdir, night)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+
+    movies_1night(night, outdir=outdir)
