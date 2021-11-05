@@ -13,6 +13,9 @@ This produces the following output files:
 
 * The -detrended output is a detrended version of the raw pointing camera image.
 * The -summary output is a multi-extension FITS file containing:
+  * The CATALOG HDU is a source catalog with centroids and fluxes.
+  * The ZEROPOINTS HDU is a summary table of zeropoints (for several apertures and different image regions).
+  * The SKY HDU is a summary table of sky brightness measurements.
 
 ```
     Filename: 20191103/20191103.234228.00498_03000-summary.fits
@@ -22,10 +25,6 @@ This produces the following output files:
       2  ZEROPOINTS    1 BinTableHDU     60   35R x 11C   [K, K, D, K, D, E, E, D, 91A, D, 8A]
       3  SKY           1 BinTableHDU     90   1R x 26C   [E, D, E, D, D, 91A, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, D, 8A]
 ```
-
-  * The CATALOG HDU is a source catalog with centroids and fluxes.
-  * The ZEROPOINTS HDU is a summary table of zeropoints (for several apertures and different image regions).
-  * The SKY HDU is a summary table of sky brightness measurements.
 
 # full help for running the pipeline
 
