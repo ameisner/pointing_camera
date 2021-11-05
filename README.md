@@ -14,12 +14,14 @@ This produces the following output files:
 * The -detrended output is a detrended version of the raw pointing camera image.
 * The -summary output is a multi-extension FITS file containing:
 
+```
     Filename: 20191103/20191103.234228.00498_03000-summary.fits
     No.    Name      Ver    Type      Cards   Dimensions   Format
       0  PRIMARY       1 PrimaryHDU      33   ()
       1  CATALOG       1 BinTableHDU    169   2785R x 65C   [K, D, D, E, E, E, E, I, E, E, I, E, E, I, E, I, I, E, E, L, E, E, E, E, E, E, E, L, E, E, D, D, D, D, D, D, D, K, L, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, 7D, K, E, E, K, D, 7D, 7D, I, K]
       2  ZEROPOINTS    1 BinTableHDU     60   35R x 11C   [K, K, D, K, D, E, E, D, 91A, D, 8A]
       3  SKY           1 BinTableHDU     90   1R x 26C   [E, D, E, D, D, 91A, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, D, 8A]
+```
 
 * The CATALOG HDU is a source catalog with centroids and fluxes.
 * The ZEROPOINTS HDU is a summary table of zeropoints (for several apertures and different image regions).
