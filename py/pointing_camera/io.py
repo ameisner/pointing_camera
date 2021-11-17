@@ -70,6 +70,30 @@ def load_static_badpix():
 
     return mask
 
+def load_master_bias():
+    """
+    Read in the master bias.
+
+    Returns
+    -------
+        bias : numpy.ndarray
+            Master bias image. Should have the same dimensions
+            as a standard raw image would. Should be floating point
+            data type (not integer).
+
+    """
+
+    par = common.pc_params()
+
+    fname = os.path.join(os.environ[par['meta_env_var']],
+                         par['master_bias_filename'])
+
+    assert(os.path.exists(fname))
+
+    bias = fits.getdata(fname)
+
+    return bias
+
 def save_zp_checkplot(exp, outdir):
 
     print('Attempting to save zeropoint check plot')

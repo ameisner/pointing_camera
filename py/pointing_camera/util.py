@@ -211,6 +211,33 @@ def subtract_quad_offs(im):
 
     return im
 
+def subtract_master_bias(im):
+    """
+    Subtract master bias as part of pixel level detrending.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D array holding pointing camera image.
+
+    Returns
+    -------
+        im : numpy.ndarray
+            Pointing camera image after bias subtraction.
+
+    Notes
+    -----
+        This function subtracts off an image-level master bias template,
+        rather than merely subtracting off scalar per-quadrant offsets.
+
+    """
+
+    bias = io.load_master_bias()
+
+    im -= bias
+
+    return im
+
 def badpix_interp(im):
     # interpolate over static badpixels
 
@@ -234,7 +261,7 @@ def detrend_pc(exp):
 
     im = exp.raw_image.astype('float32')
 
-    im = subtract_quad_offs(im)
+    im = subtract_master_bias(im)
 
     im = subtract_dark_current(im, exp.time_seconds)
 
