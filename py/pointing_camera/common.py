@@ -16,6 +16,7 @@ def pc_params():
            'meta_env_var' : 'POINTING_CAMERA_META',
            'static_mask_filename' : 'pc_badpix_mask.fits.gz',
            'master_bias_filename' : 'pc_master_bias.fits.gz',
+           'master_dark_filename' : 'pc_master_dark.fits.gz',
            'gaia_env_var' : 'PC_GAIA_DIR',
            'aper_phot_objrad' : 2.0 + 0.5*np.arange(7),
            'aper_phot_objrad_best' :  2.5,

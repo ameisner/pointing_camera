@@ -214,6 +214,35 @@ def subtract_dark_current(im, time_seconds):
 
     return result
 
+def subtract_master_dark(im, time_seconds):
+    """
+    Subtract image-level master dark as part of pixel-level detrending.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            Image from which to subtract the dark current. Should
+            be float data type rather than integer.
+
+        time_seconds : float
+            Exposure time in seconds. Gets multiplied by the dark current
+            rate to determine total dark current to subtract.
+
+    Returns
+    -------
+        result : numpy.ndarray
+            Dark current subtracted version of input image.
+
+    """
+
+    dark = io.load_master_dark()
+
+    print('Subtracting image-level master dark')
+
+    im -= dark*time_seconds
+
+    return im
+
 def subtract_quad_offs(im):
     par = common.pc_params()
 
@@ -284,7 +313,7 @@ def detrend_pc(exp):
 
     im = subtract_master_bias(im)
 
-    im = subtract_dark_current(im, exp.time_seconds)
+    im = subtract_master_dark(im, exp.time_seconds)
 
     im = badpix_interp(im)
 

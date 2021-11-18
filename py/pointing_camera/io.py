@@ -95,6 +95,31 @@ def load_master_bias():
 
     return bias
 
+def load_master_dark():
+    """
+    Read in the master dark.
+
+    Returns
+    -------
+        dark : numpy.ndarray
+            Master dark image. Should have the same dimensions
+            as a standard raw image would. Should be floating point
+            data type (not integer).
+
+    """
+
+    par = common.pc_params()
+
+    fname = os.path.join(os.environ[par['meta_env_var']],
+                         par['master_dark_filename'])
+
+    assert(os.path.exists(fname))
+
+    print('READING MASTER DARK: ' + fname)
+    dark = fits.getdata(fname)
+
+    return dark
+
 def save_zp_checkplot(exp, outdir):
 
     print('Attempting to save zeropoint check plot')
