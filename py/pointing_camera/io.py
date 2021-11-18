@@ -90,6 +90,7 @@ def load_master_bias():
 
     assert(os.path.exists(fname))
 
+    print('READING MASTER BIAS: ' + fname)
     bias = fits.getdata(fname)
 
     return bias

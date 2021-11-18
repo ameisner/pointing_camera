@@ -234,6 +234,8 @@ def subtract_master_bias(im):
 
     bias = io.load_master_bias()
 
+    print('Subtracting image-level master bias')
+
     im -= bias
 
     return im
