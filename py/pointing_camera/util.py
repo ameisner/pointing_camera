@@ -176,6 +176,25 @@ def min_edge_dist_pix(x, y):
     return min_edge_dist
 
 def subtract_dark_current(im, time_seconds):
+    """
+    Subtract per-quadrant offsets representing accumulated dark current.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            Image from which to subtract the dark current. Should
+            be float data type rather than integer.
+
+        time_seconds : float
+            Exposure time in seconds. Gets multiplied by the dark current
+            rate to determine total dark current to subtract.
+
+    Returns
+    -------
+        result : numpy.ndarray
+            Dark current subtracted version of input image.
+
+    """
 
     print('Subtracting dark current')
 
