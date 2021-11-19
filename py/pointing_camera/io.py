@@ -120,6 +120,32 @@ def load_master_dark():
 
     return dark
 
+def load_master_flat():
+    """
+    Read in the master flat.
+
+    Returns
+    -------
+        flat : numpy.ndarray
+            Master flat image. Should have the same dimensions
+            as a standard raw image would. Should be floating point
+            data type (not integer). Should have an overall median
+            value of 1.
+
+    """
+
+    par = common.pc_params()
+
+    fname = os.path.join(os.environ[par['meta_env_var']],
+                         par['master_flat_filename'])
+
+    assert(os.path.exists(fname))
+
+    print('READING MASTER FLAT: ' + fname)
+    flat = fits.getdata(fname)
+
+    return flat
+
 def save_zp_checkplot(exp, outdir):
 
     print('Attempting to save zeropoint check plot')

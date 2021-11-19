@@ -288,6 +288,37 @@ def subtract_master_bias(im):
 
     return im
 
+def apply_flatfield(im):
+    """
+    Apply flatfield correction.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D array holding pointing camera image. Should already
+            have bias and dark current removed.
+
+    Returns
+    -------
+        im : numpy.ndarray
+            Pointing camera image after flat field correction.
+
+    Notes
+    -----
+        Flatfield should have a median value of 1. Flatfield built
+        with ~1,600 serendipitous 'sky flat' exposures from
+        summer 2021 taken with bright sky and no clouds.
+
+    """
+
+    flat = io.load_master_flat()
+
+    print('Applying flat field correction')
+
+    im /= flat
+
+    return im
+
 def badpix_interp(im):
     # interpolate over static badpixels
 
@@ -315,6 +346,8 @@ def detrend_pc(exp):
 
     im = subtract_master_dark(im, exp.time_seconds)
 
+    im = apply_flatfield(im)
+    
     im = badpix_interp(im)
 
     exp.is_detrended = True
