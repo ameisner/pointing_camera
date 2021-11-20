@@ -108,7 +108,7 @@ def pointing_camera_index(night):
 
         if 'MJD-OBS' in h:
             tai_utc_offs = 37.0/(24.0*3600.0) # in days
-            result = (f, h['MJD-OBS'] - tai_utc_offs)
+            result = (f, h['MJD-OBS'] - tai_utc_offs, h['HA'], h['DEC'])
             results.append(result)
         else:
             print(f + ' does not have MJD-OBS??')
@@ -116,6 +116,8 @@ def pointing_camera_index(night):
     t = Table()
     t['FNAME'] = [r[0] for r in results]
     t['MJD'] = [r[1] for r in results]
+    t['HA'] = [r[2] for r in results]
+    t['DEC'] = [r[3] for r in results]
 
     return t
 
