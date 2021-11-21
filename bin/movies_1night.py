@@ -186,19 +186,31 @@ def one_pc_rendering(fname):
 
     return im
 
+
+def pc_index_for_expid(pc_index, mjdrange):
+    '''Get pointing camera index spanning desired range of MJD values.'''
+
+    keep = (pc_index['MJD'] >= mjdrange[0]) & (pc_index['MJD'] < mjdrange[1])
+
+    if np.sum(keep) == 0:
+        print('no pointing camera exposures in requested MJD range')
+        return None
+
+    pc_index = pc_index[keep]
+    pc_index.sort('MJD')
+
+    return pc_index
+
 def desi_exp_movie(mjdrange, expid, pc_index, fps=5, outdir='.'):
     '''make an animation of pointing camera images during one DESI exposure'''
 
     print('Working on DESI exposure ', expid)
 
-    keep = (pc_index['MJD'] >= mjdrange[0]) & (pc_index['MJD'] < mjdrange[1])
+    pc_index = pc_index_for_expid(pc_index, mjdrange)
 
-    if np.sum(keep) == 0:
+    if pc_index is None:
         print('no pointing camera exposures for exposure ' + expid)
         return
-
-    pc_index = pc_index[keep]
-    pc_index.sort('MJD')
 
     ims = []
     for row in pc_index:
