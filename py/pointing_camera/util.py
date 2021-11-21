@@ -893,3 +893,43 @@ def split_table(tab, n_parts):
     assert(nrows == _nrows)
 
     return parts
+
+def flag_dome_vignetting(detrended, exptime_seconds):
+    """
+    Boolean classification of whether dome is vignetting any of the FOV.
+
+    Parameters
+    ----------
+        detrended : numpy.ndarray
+            Detrended image in units of ADU/pix (not ADU/pix/s).
+        exptime_seconds : float
+            Exposure time in seconds.
+
+    Returns
+    -------
+        has_dome : bool
+            Boolean label (True = has any amount of dome vignetting,
+            False = no dome vignetting)
+
+    Notes
+    -----
+        Counts number of pixels in detrended image (no downbinning)
+        with < 0.5 ADU/pix/second (this value is tuned for El Nino).
+        Nominal dark sky corresponding to r ~ 21 AB generates
+        3.2 ADU/pix/second. This approach seems to work well
+        for long El Nino exposure times of 20 seconds (the standard/routine
+        value), but is likely to not work as well for shorter exposure times,
+        where any variations of the bias levels will matter much more.
+
+    """
+
+    par = common.pc_params()
+
+    frac = np.sum(detrended/exptime_seconds < par['dome_thresh_adu_per_s'])/detrended.size
+
+    # note the 0.01 threshold here -- possible this could use more tuning
+    has_dome = frac >= 0.01
+
+    return has_dome
+
+    

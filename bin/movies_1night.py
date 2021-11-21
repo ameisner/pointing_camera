@@ -45,6 +45,8 @@ def guide_cube_mjd_ranges(night):
     if len(flist) == 0:
         return None
 
+    flist.sort()
+
     extnames = ['GUIDE' + str(gfa_loc) + 'T' for gfa_loc in [0, 2, 3, 5, 7, 8]]
 
     results = []
@@ -77,7 +79,7 @@ def guide_cube_mjd_ranges(night):
 
     return t
 
-def pointing_camera_index(night):
+def pointing_camera_index(night, require_standard_exptime=True):
     '''get a tabulation of pointing camera exposures and their MJD values'''
 
     year = night[0:4]
@@ -108,7 +110,8 @@ def pointing_camera_index(night):
 
         if 'MJD-OBS' in h:
             tai_utc_offs = 37.0/(24.0*3600.0) # in days
-            result = (f, h['MJD-OBS'] - tai_utc_offs, h['HA'], h['DEC'])
+            result = (f, h['MJD-OBS'] - tai_utc_offs, h['HA'], h['DEC'], \
+                      h['EXPTIME'])
             results.append(result)
         else:
             print(f + ' does not have MJD-OBS??')
@@ -118,6 +121,10 @@ def pointing_camera_index(night):
     t['MJD'] = [r[1] for r in results]
     t['HA'] = [r[2] for r in results]
     t['DEC'] = [r[3] for r in results]
+    t['EXPTIME_SECONDS'] = [r[4]/1000.0 for r in results]
+
+    if require_standard_exptime:
+        t = t[t['EXPTIME_SECONDS'] == 20]
 
     return t
 
@@ -129,6 +136,8 @@ def one_pc_rendering(fname):
 
     # detrend
     util.detrend_pc(exp)
+
+    has_dome = util.flag_dome_vignetting(exp.detrended, exp.time_seconds)
 
     # downsample via averaging
     binfac = 8
@@ -163,9 +172,15 @@ def one_pc_rendering(fname):
 
     dist = np.sqrt(np.power(xbox, 2) + np.power(ybox, 2))
 
-    mask = np.abs(dist - par['desi_radius_pix']/binfac) < 0.5
+    mask = np.abs(dist - par['science_radius_pix']/binfac) < 0.5
 
     im[mask] = limits[1]
+
+    if has_dome:
+        # denote dome vignetting flag as a second white circle surrounding
+        # the DESI FOV circle
+        _mask = np.abs(dist - 1.05*par['science_radius_pix']/binfac) < 0.5
+        im[_mask] = limits[1]
 
     im -= limits[0]
 

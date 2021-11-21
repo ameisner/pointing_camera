@@ -25,7 +25,8 @@ def pc_params():
            'bp_rp_coeff' : 0.25,
            'raw_satur_val': 16383,
            'ncpus': 8,
-           'desi_radius_pix': 665.49217,
-           'zp_adu_per_s': 17.58}
+           'science_radius_pix': 665.49217,
+           'zp_adu_per_s': 17.58,
+           'dome_thresh_adu_per_s': 0.5}
 
     return par
