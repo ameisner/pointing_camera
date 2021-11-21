@@ -925,11 +925,12 @@ def flag_dome_vignetting(detrended, exptime_seconds):
 
     par = common.pc_params()
 
+    if exptime_seconds < 20:
+        print('WARNING: dome flagging works better for longer exposures')
+
     frac = np.sum(detrended/exptime_seconds < par['dome_thresh_adu_per_s'])/detrended.size
 
     # note the 0.01 threshold here -- possible this could use more tuning
     has_dome = frac >= 0.01
 
     return has_dome
-
-    
