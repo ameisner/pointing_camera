@@ -43,6 +43,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     # so didn't appear to provide any speed-up; could revisit later
     zps = zp.calc_many_zps(cat, exp, one_aper=one_aper, checkplot=(not skip_checkplot))
 
+    has_dome = util.flag_dome_vignetting(exp.detrended, exp.time_seconds)
+
     if write_outputs:
         if not os.path.exists(outdir):
             os.mkdir(outdir)

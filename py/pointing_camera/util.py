@@ -923,10 +923,14 @@ def flag_dome_vignetting(detrended, exptime_seconds):
 
     """
 
+    print('Attempting to flag dome vignetting...')
+
     par = common.pc_params()
 
     if exptime_seconds < 20:
-        print('WARNING: dome flagging works better for longer exposures')
+        print('WARNING: dome flagging works better for longer exposures ' + \
+              '(exposure time is only ' + \
+              '{:.2f}'.format(exptime_seconds) + ' seconds)')
 
     frac = np.sum(detrended/exptime_seconds < par['dome_thresh_adu_per_s'])/detrended.size
 
