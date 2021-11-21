@@ -446,6 +446,9 @@ def sky_summary_table(exp):
     t['mjd_obs'] = exp.header['MJD-OBS']
     t['obs_night'] = exp.obs_night
 
+    if exp.has_dome is not None:
+        t['has_dome'] = exp.has_dome.astype('int16')
+
     return t
 
 def _validate_ctype(wcs):
@@ -776,6 +779,9 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
     cat['flux_adu_per_s'] = cat['flux_adu']/exp.time_seconds
 
     cat['m_inst'] = -2.5*np.log10(cat['flux_adu_per_s'])
+
+    if exp.has_dome is not None:
+        cat['has_dome'] = exp.has_dome.astype('int16')
 
     source_raw_pixel_metrics(cat, exp.raw_image)
 
