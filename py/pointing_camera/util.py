@@ -354,6 +354,8 @@ def detrend_pc(exp):
 
     exp.detrended = im
 
+    exp.update_dome_flag()
+
     print('Finished detrending the raw pointing camera image')
 
 def sky_metrics(im):

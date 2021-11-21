@@ -42,3 +42,19 @@ class PC_exposure:
         self.is_detrended = False
 
         self.has_dome = None
+
+    def update_dome_flag(self):
+        """
+        Compute and store boolean flag for dome vignetting.
+
+        Notes
+        -----
+            Detrended image needs to have been computed/stored prior to
+            running this.
+
+        """
+
+        assert(self.is_detrended)
+
+        self.has_dome = util.flag_dome_vignetting(self.detrended,
+                                                  self.time_seconds)

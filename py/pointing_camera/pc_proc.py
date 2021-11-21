@@ -33,8 +33,6 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     util.detrend_pc(exp)
 
-    exp.has_dome = util.flag_dome_vignetting(exp.detrended, exp.time_seconds)
-
     sky = util.sky_summary_table(exp)
 
     cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip,
