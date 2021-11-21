@@ -33,6 +33,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     util.detrend_pc(exp)
 
+    exp.has_dome = util.flag_dome_vignetting(exp.detrended, exp.time_seconds)
+
     sky = util.sky_summary_table(exp)
 
     cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip,
@@ -42,8 +44,6 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     # intentionally don't pass nmp to zps.calc_many_zp, since doing
     # so didn't appear to provide any speed-up; could revisit later
     zps = zp.calc_many_zps(cat, exp, one_aper=one_aper, checkplot=(not skip_checkplot))
-
-    has_dome = util.flag_dome_vignetting(exp.detrended, exp.time_seconds)
 
     if write_outputs:
         if not os.path.exists(outdir):

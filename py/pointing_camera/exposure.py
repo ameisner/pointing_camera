@@ -40,3 +40,5 @@ class PC_exposure:
         self.time_seconds = util.get_exptime(self.header)
 
         self.is_detrended = False
+
+        self.has_dome = None
