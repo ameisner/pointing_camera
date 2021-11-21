@@ -144,6 +144,9 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
     results['mjd_obs'] = exp.header['MJD-OBS']
     results['obs_night'] = exp.obs_night
 
+    if exp.has_dome is not None:
+        results['has_dome'] = exp.has_dome.astype('int16')
+
     sind = np.argsort(1000*results['quadrant'] + results['aper_ind'])
     results = results[sind]
 
