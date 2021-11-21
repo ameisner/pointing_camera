@@ -58,3 +58,5 @@ class PC_exposure:
 
         self.has_dome = util.flag_dome_vignetting(self.detrended,
                                                   self.time_seconds)
+
+        self.header['DOMEFLAG'] = (self.has_dome, 'potential dome vignetting')
