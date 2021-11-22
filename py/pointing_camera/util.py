@@ -358,14 +358,20 @@ def detrend_pc(exp):
 
     print('Finished detrending the raw pointing camera image')
 
-def sky_metrics(im):
+def sky_metrics(im, mask=None):
     # im is a 2D numpy array, intended to be either a full-frame
     # image or one quadrant of a full-frame image
+
+    # mask should be a boolean image array with the same
+    # dimensions as im
 
     sz = im.shape
     assert(len(sz) == 2)
 
-    im_sorted = np.ravel(im)
+    if mask is None:
+        im_sorted = np.ravel(im)
+    else:
+        im_sorted = im[mask]
 
     sind = np.argsort(im_sorted)
 
@@ -409,18 +415,24 @@ def sky_summary_table(exp):
 
     print('Computing sky background statistics')
 
-    metrics = sky_metrics(exp.detrended)
-    med = metrics['median']
-    mean = metrics['sky_clipped_mean']
+    par = common.pc_params()
 
     t = Table()
-
-    t['median_adu'] = [med]
-    t['median_adu_per_s'] = [med/exp.time_seconds]
-    t['mean_adu'] = [mean]
-    t['mean_adu_per_s'] = [mean/exp.time_seconds]
     t['time_seconds'] = [exp.time_seconds]
     t['fname_raw'] = [exp.fname_im]
+
+    metrics = sky_metrics(exp.detrended)
+    t['median_adu'] = [metrics['median']]
+    t['median_adu_per_s'] = [metrics['median']/exp.time_seconds]
+    t['mean_adu'] = [metrics['sky_clipped_mean']]
+    t['mean_adu_per_s'] = [metrics['sky_clipped_mean']/exp.time_seconds]
+
+    sci_mask = circular_mask(par['science_radius_pix'])
+    metrics_sci = sky_metrics(exp.detrended, mask=sci_mask)
+    t['median_adu_sci'] = [metrics_sci['median']]
+    t['median_adu_sci_per_s'] = [metrics_sci['median']/exp.time_seconds]
+    t['mean_adu_sci'] = [metrics_sci['sky_clipped_mean']]
+    t['mean_adu_sci_per_s'] = [metrics_sci['sky_clipped_mean']/exp.time_seconds]
 
     qmeds = []
     for q in [1, 2, 3, 4]:
@@ -981,3 +993,49 @@ def central_pixel_coord(sidelen):
     coord = float(sidelen)/2 - 0.5
 
     return coord
+
+def circular_mask(radius_pix):
+    """
+    Create a boolean mask representing a circle centered at the image center.
+
+    Parameters
+    ----------
+        radius_pix : float
+            Radius value to use for the circular mask.
+
+    Returns
+    -------
+        mask : numpy.ndarray
+            Boolean mask as a 2D numpy array. True means that a pixel
+            location is within radius_pix pixels of the center.
+
+    Notes
+    -----
+        Need to work on speeding this up, as there are definitely
+        possible optimizations that remain to be made.
+
+    """
+
+    par = common.pc_params()
+
+    sh = (par['ny'], par['nx'])
+
+    ybox, xbox = np.mgrid[0:sh[0], 0:sh[1]]
+
+    # these type conversions alone take ~0.1 seconds (on Cori) ...
+    xbox = xbox.astype('float')
+    ybox = ybox.astype('float')
+
+    x_center = central_pixel_coord(par['nx'])
+    y_center = central_pixel_coord(par['ny'])
+
+    xbox -= x_center
+    ybox -= y_center
+
+    dist = np.hypot(xbox, ybox)
+
+    dist = dist.reshape(sh)
+
+    mask = (dist <= radius_pix)
+
+    return mask
