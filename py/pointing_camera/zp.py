@@ -8,13 +8,21 @@ from astropy.table import Table, vstack
 from multiprocessing import Pool
 
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
-            one_aper=False, checkplot=True):
+            one_aper=False, checkplot=True, science_fov_only=False):
     # quadrant = 0 means whole image (all quadrants combined)
 
-    print('Computing zeropoint for quadrant : ', quadrant, ' , aper ', aper_ind)
+    print('Computing zeropoint for quadrant : ', quadrant, \
+          ' , aper ', aper_ind, ' , science FOV only = ', science_fov_only)
 
     assert(time_seconds > 0)
     assert(quadrant in [0, 1, 2, 3, 4]) # note the 0 option here...
+
+    if science_fov_only:
+        # for now, I don't want to compute per-quadrant zeropoints
+        # when restricting to the science instrument field of view
+        # (not sure if there'd be enough stars to do that well per-quadrant?)
+        # may revisit this later...
+        assert(quadrant == 0)
 
     par = common.pc_params()
 
@@ -32,6 +40,9 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
            np.isfinite(cat['PHOT_BP_MEAN_MAG']) & \
            np.isfinite(cat['PHOT_RP_MEAN_MAG']) & \
            np.isfinite(cat['PHOT_G_MEAN_MAG'])
+
+    if science_fov_only:
+        good = np.logical_and(good, cat['in_science_fov'])
 
     if quadrant != 0:
         good = good & (cat['quadrant'] == quadrant)
@@ -75,12 +86,13 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
     result['gaia_g_median'] = [np.nanmedian(cat['PHOT_G_MEAN_MAG'])]
     result['robust_sigma_mag'] = [sig_robust]
     result['fname_raw'] = [fname_im]
+    result['science_fov_only'] = [int(science_fov_only)]
 
-    # checkplot (eventually make this optional)
-
+    # checkplot
     best_aper_ind = 1 if not one_aper else 0
 
-    if checkplot and (quadrant == 0) and (aper_ind == best_aper_ind):
+    if checkplot and (quadrant == 0) and (aper_ind == best_aper_ind) and \
+       (not science_fov_only):
         plt.cla()
         plt.figure(1)
         xtitle = 'G + 0.25*(BP-RP)'
@@ -130,7 +142,9 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
     args = []
     for q in [0, 1, 2, 3, 4]:
         for aper_ind in range(len(aper_radii)):
-            args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, checkplot, one_aper))
+            args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, checkplot, one_aper, False))
+            if q == 0:
+                args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, checkplot, one_aper, True))
 
     if nmp is not None:
         p = Pool(min(nmp, len(args)))
@@ -147,7 +161,8 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
     if exp.has_dome is not None:
         results['has_dome'] = exp.has_dome.astype('int16')
 
-    sind = np.argsort(1000*results['quadrant'] + results['aper_ind'])
+    sind = np.argsort(1000*results['quadrant'] + results['aper_ind'] + \
+                      0.5*results['science_fov_only'])
     results = results[sind]
 
     return results
