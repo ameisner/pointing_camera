@@ -786,6 +786,9 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
         np.hypot(cat['xcentroid'] - central_pixel_coord(par['nx']),
                  cat['ycentroid'] - central_pixel_coord(par['ny']))
 
+    cat['in_science_fov'] = \
+        (cat['radius_pix'] < par['science_radius_pix']).astype('int16')
+
     if exp.has_dome is not None:
         cat['has_dome'] = exp.has_dome.astype('int16')
 
