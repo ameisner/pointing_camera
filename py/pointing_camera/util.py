@@ -780,6 +780,12 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
 
     cat['m_inst'] = -2.5*np.log10(cat['flux_adu_per_s'])
 
+    par = common.pc_params()
+
+    cat['radius_pix'] = \
+        np.hypot(cat['xcentroid'] - central_pixel_coord(par['nx']),
+                 cat['ycentroid'] - central_pixel_coord(par['ny']))
+
     if exp.has_dome is not None:
         cat['has_dome'] = exp.has_dome.astype('int16')
 
@@ -946,3 +952,29 @@ def flag_dome_vignetting(detrended, exptime_seconds):
     has_dome = frac >= 0.01
 
     return has_dome
+
+def central_pixel_coord(sidelen):
+    """
+    Return central pixel coordinate along an axis.
+
+    Parameters
+    ----------
+        sidelen : int
+            Integer side length in pixels.
+
+    Returns
+    -------
+        coord : float
+            Pixel coordinate of center. Will be a half-integer for
+            even side length and integer for odd side length.
+
+    Notes
+    -----
+        Convention is that center of first pixel corresponds to
+        coordinate value of 0.
+
+    """
+
+    coord = float(sidelen)/2 - 0.5
+
+    return coord
