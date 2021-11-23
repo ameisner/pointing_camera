@@ -47,7 +47,7 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
     for q in [4, 3, 2, 1, 0]:
         if (q == 0) and (skip_q0):
             continue
-        colname = 'mean_adu_'
+        colname = 'median_adu_'
         if q != 0:
             colname += 'quad' + str(q)
         else:
