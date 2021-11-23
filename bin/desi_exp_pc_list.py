@@ -22,6 +22,7 @@ def pc_file_list(night, expid):
 
     pc = movies_1night.pointing_camera_index(night)
     cubes = movies_1night.guide_cube_mjd_ranges(night)
+    cubes['EXPID'] = cubes['EXPID'].astype(int)
 
     keep = cubes[cubes['EXPID'] == expid]
 
@@ -33,10 +34,12 @@ def pc_file_list(night, expid):
 
     mjdrange = [keep['MJDMIN'], keep['MJDMAX']]
 
+    print(mjdrange)
+
     pc = movies_1night.pc_index_for_expid(pc, mjdrange)
 
     if pc is None:
-        print('no pointing camera exposures for exposure ' + expid)
+        print('no pointing camera exposures for exposure ' + str(expid))
         return None
 
     return pc['FNAME']
