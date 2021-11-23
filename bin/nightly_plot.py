@@ -12,7 +12,7 @@ from astropy.table import Table, vstack
 import os
 from multiprocessing import Pool
 
-default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/reduced/v0005' # NERSC
+default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/reduced/v0006' # NERSC
 
 files_processed = []
 skies_table = None
@@ -22,7 +22,7 @@ def quadrant_colors():
     # meant to be a small utility
     # quadrant 0 means all 4 quadrants combined
 
-    colors = {0: 'b', 1: 'm', 2: 'r', 3: 'g', 4: 'c'}
+    colors = {0: 'k', 1: 'm', 2: 'r', 3: 'g', 4: 'c'}
 
     return colors
 
@@ -49,8 +49,13 @@ def sky_subplot(tab, xticklabels=True, mjdrange=None, markersize=20,
             continue
         colname = 'mean_adu_'
         if q != 0:
-            colname += 'quad' + str(q) + '_'
-        colname += 'per_s'
+            colname += 'quad' + str(q)
+        else:
+            # for quadrant zero, use the science (DESI) FOV footprint
+            # rather than the entire pointing camera FOV
+            colname += 'sci'
+
+        colname += '_per_s'
         plt.scatter(datetimes, -2.5*np.log10(tab[colname]),
                     edgecolor='none', s=markersize, c=colors[q])
 
@@ -83,6 +88,12 @@ def zp_subplot(tab, xticklabels=False, mjdrange=None, markersize=20,
         if (q == 0) and (skip_q0):
             continue
         _tab = tab[tab['quadrant'] == q]
+
+        # for quadrant zero, use the science (DESI) FOV footprint
+        # rather than the entire pointing camera FOV
+        if (q == 0):
+            _tab = _tab[_tab['science_fov_only'] == 1]
+
         datetimes = []
         for t in _tab:
             tm = Time(t['mjd_obs'], format='mjd')
@@ -186,92 +197,3 @@ def _read_concat_tables(flist, ext=1, nmp=None):
     print('Finished appending tables...')
 
     return result
-
-def _proc_new_files(data_dir=default_data_dir, outdir='.', clobber=True):
-
-    print('Checking for new reduction outputs...')
-
-    assert(os.path.exists(data_dir))
-    
-    global files_processed
-    global skies_table
-    global zps_table
-
-    flist_sky = glob.glob(data_dir + '/????????/*sky.fits')
-    flist_zp = glob.glob(data_dir + '/????????/*zeropoints.fits')
-
-    if (len(flist_sky) == 0) or (len(flist_zp) == 0):
-        print('Nothing to plot yet...')
-        return
-
-    # figure out new list of sky.fits and zeropoints.fits files
-
-    flist_sky_new = set(flist_sky) - set(files_processed)
-    flist_zeropoints_new = set(flist_zp) - set(files_processed)
-
-    if len(flist_sky_new) > 0:
-        new_skies = _read_concat_tables(flist_sky_new)
-        if skies_table is not None:
-            skies_table = vstack([skies_table, new_skies])
-        else:
-            skies_table = new_skies
-        
-    if len(flist_zeropoints_new) > 0:
-        new_zps = _read_concat_tables(flist_zeropoints_new)
-        new_zps = new_zps[(new_zps['aper_ind'] == 1) &
-                          (new_zps['quadrant'] == 0)]
-
-        if zps_table is not None:
-            zps_table = vstack([zps_table, new_zps])
-        else:
-            zps_table = new_zps
-    
-    # update skies_table and zps_table by appending new rows
-    # to old rows
-    
-    files_processed = flist_sky + flist_zp # what if a file gets deleted though?
-
-    if (len(flist_sky_new) > 0) or (len(flist_zeropoints_new) > 0):
-        plt.cla()
-        _twopanel(skies_table, zps_table, clobber=clobber, mjdrange=mjdrange)
-    else:
-        print('No new reduction output files found...')
-    
-def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.', clobber=True):
-
-    while True:
-        print('Waiting', wait_seconds, ' seconds')
-        time.sleep(wait_seconds)
-        _proc_new_files(data_dir=data_dir, outdir=outdir, clobber=clobber)
-
-if __name__ == "__main__":
-    descr = 'create nightly strip charts of zeropoint and sky brightness'
-
-    parser = argparse.ArgumentParser(description=descr)
-
-    parser.add_argument('--start_night', default=None, type=str,
-                        help="observing night to start with")
-
-    parser.add_argument('--data_dir', default=default_data_dir, type=str,
-                        help="directory with reduction pipeline output files")
-    
-    parser.add_argument('--outdir', default='.', type=str,
-                        help="directory to write output images in")
-
-    parser.add_argument('--wait_seconds', default=5, type=int,
-                        help="plot creation polling interval in seconds")
-
-    parser.add_argument('--no_clobber', default=False, action='store_true',
-                        help="new nightly plot image for every update")
-
-    args = parser.parse_args()
-
-    # if start_night is None, then figure out the DESI observing night
-    # based on the 
-
-    assert(args.wait_seconds >= 1)
-
-    _watch(wait_seconds=args.wait_seconds, data_dir=args.data_dir,
-           outdir=args.outdir,
-           clobber=(not args.no_clobber))
-    

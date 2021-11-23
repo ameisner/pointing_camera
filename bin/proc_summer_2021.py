@@ -9,7 +9,7 @@ import numpy as np
 
 default_data_dir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/el_nino'
 
-default_outdir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/summer_2021/v0001'
+default_outdir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/summer_2021/v0006'
 
 def _proc_many_exp(flist, indstart, nproc, outdir=default_outdir):
     n_all = len(flist)

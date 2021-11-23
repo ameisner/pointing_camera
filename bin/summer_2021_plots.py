@@ -9,7 +9,7 @@ import sky_mon
 from astropy.time import Time
 import matplotlib.dates as md
 
-basedir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/summer_2021/v0001'
+basedir = '/global/cfs/cdirs/desi/users/ameisner/pointing_camera/summer_2021/v0006'
 
 def _plot_airmass(tab, mjdrange, xticklabels=True,
                   title_extra='', do_xlabel=True, markersize=2):
