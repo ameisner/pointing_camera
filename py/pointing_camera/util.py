@@ -328,7 +328,7 @@ def badpix_interp(im):
 
     return result
 
-def detrend_pc(exp):
+def detrend_pc(exp, skip_flatfield=False):
     # exp is a PC_exposure object
 
     print('Attempting to detrend the raw pointing camera image')
@@ -346,7 +346,8 @@ def detrend_pc(exp):
 
     im = subtract_master_dark(im, exp.time_seconds)
 
-    im = apply_flatfield(im)
+    if not skip_flatfield:
+        im = apply_flatfield(im)
     
     im = badpix_interp(im)
 

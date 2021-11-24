@@ -13,7 +13,7 @@ import pointing_camera.common as common
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
-            pm_corr=False):
+            pm_corr=False, skip_flatfield=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -31,7 +31,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     exp = PC_exposure(fname_in)
 
-    util.detrend_pc(exp)
+    util.detrend_pc(exp, skip_flatfield=skip_flatfield)
 
     sky = util.sky_summary_table(exp)
 
@@ -116,6 +116,9 @@ if __name__ == "__main__":
     parser.add_argument('--pm_corr', default=False, action='store_true',
                         help="make Gaia proper motion corrections based on MJD")
 
+    parser.add_argument('--skip_flatfield', default=False, action='store_true',
+                        help="skip flatfielding during pixel-level detrending")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -129,4 +132,5 @@ if __name__ == "__main__":
             skip_checkplot=args.skip_checkplot,
             nightly_subdir=args.nightly_subdir, send_redis=args.send_redis,
             one_aper=args.one_aper, bg_sigclip=args.bg_sigclip,
-            nmp=args.multiproc, max_n_stars=args.max_n_stars, pm_corr=args.pm_corr)
+            nmp=args.multiproc, max_n_stars=args.max_n_stars,
+            pm_corr=args.pm_corr, skip_flatfield=args.skip_flatfield)
