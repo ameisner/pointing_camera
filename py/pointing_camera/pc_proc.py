@@ -13,7 +13,7 @@ import pointing_camera.common as common
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
-            pm_corr=False, skip_flatfield=False):
+            pm_corr=False, skip_flatfield=False, sci_inst_name='desi'):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -68,7 +68,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         if send_redis:
             print('Attempting to send results to redis...')
             _aper_ind = 0 if one_aper else 1
-            util.send_redis(exp, zps[zps['aper_ind'] == _aper_ind], sky[0])
+            util.send_redis(exp, zps[zps['aper_ind'] == _aper_ind], sky[0],
+                            sci_inst_name=sci_inst_name)
 
     dt = time.time() - t0
     print('pointing camera reduction pipeline took ' + '{:.2f}'.format(dt) +
@@ -119,6 +120,9 @@ if __name__ == "__main__":
     parser.add_argument('--skip_flatfield', default=False, action='store_true',
                         help="skip flatfielding during pixel-level detrending")
 
+    parser.add_argument('--sci_inst_name', default='desi', type=str,
+                        help='name of science instrument')
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -133,4 +137,5 @@ if __name__ == "__main__":
             nightly_subdir=args.nightly_subdir, send_redis=args.send_redis,
             one_aper=args.one_aper, bg_sigclip=args.bg_sigclip,
             nmp=args.multiproc, max_n_stars=args.max_n_stars,
-            pm_corr=args.pm_corr, skip_flatfield=args.skip_flatfield)
+            pm_corr=args.pm_corr, skip_flatfield=args.skip_flatfield,
+            sci_inst_name=args.sci_inst_name)
