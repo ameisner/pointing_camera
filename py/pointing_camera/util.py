@@ -348,7 +348,7 @@ def detrend_pc(exp, skip_flatfield=False):
 
     if not skip_flatfield:
         im = apply_flatfield(im)
-    
+
     im = badpix_interp(im)
 
     exp.is_detrended = True
@@ -841,7 +841,7 @@ def get_obs_night(date_string_local, time_string_local):
 
         return date_string_yesterday
 
-def send_redis(exp, zp_info, sky_info):
+def send_redis(exp, zp_info, sky_info, sci_inst_name='desi'):
 
     # zp_info is a table with five rows:
     #     quadrants 0-4 inclusive with zero representing whole image
@@ -856,11 +856,11 @@ def send_redis(exp, zp_info, sky_info):
     # like MJD-OBS being empty in the header
     mjd_obs = float(exp.header['MJD-OBS'])
 
-    zp_adu_per_s = [zp_info[zp_info['quadrant'] == q]['zp_adu_per_s'][0] for q in range(5)]
+    zp_adu_per_s = [zp_info[(zp_info['quadrant'] == q) & (zp_info['science_fov_only'] == 0)]['zp_adu_per_s'][0] for q in range(5)]
 
-    n_sources_for_zp = [int(zp_info[zp_info['quadrant'] == q]['n_sources_for_zp'][0]) for q in range(5)]
+    n_sources_for_zp = [int(zp_info[(zp_info['quadrant'] == q) & (zp_info['science_fov_only'] == 0)]['n_sources_for_zp'][0]) for q in range(5)]
 
-    sky_adu_per_s = sky_info['mean_adu_per_s']
+    sky_adu_per_s = sky_info['median_adu_per_s']
 
     print('Redis timestamp = ' + timestamp)
 
@@ -887,10 +887,14 @@ def send_redis(exp, zp_info, sky_info):
             'n_stars_for_zp_q2': n_sources_for_zp[2],
             'n_stars_for_zp_q3': n_sources_for_zp[3],
             'n_stars_for_zp_q4': n_sources_for_zp[4],
-            'sky_adu_per_s_q1': sky_info['mean_adu_quad1_per_s'],
-            'sky_adu_per_s_q2': sky_info['mean_adu_quad2_per_s'],
-            'sky_adu_per_s_q3': sky_info['mean_adu_quad3_per_s'],
-            'sky_adu_per_s_q4': sky_info['mean_adu_quad4_per_s']}
+            'sky_adu_per_s_q1': sky_info['median_adu_quad1_per_s'],
+            'sky_adu_per_s_q2': sky_info['median_adu_quad2_per_s'],
+            'sky_adu_per_s_q3': sky_info['median_adu_quad3_per_s'],
+            'sky_adu_per_s_q4': sky_info['median_adu_quad4_per_s'],
+            'sky_adu_per_s_' + sci_inst_name : sky_info['median_adu_sci_per_s'],
+            'zp_adu_per_s_' + sci_inst_name : zp_info[zp_info['science_fov_only'] == 1]['zp_adu_per_s'][0],
+            'n_stars_for_zp_' + sci_inst_name : int(zp_info[zp_info['science_fov_only'] == 1]['n_sources_for_zp'][0]),
+            'flag' : int(sky_info['has_dome'])}
 
     print(data)
 
