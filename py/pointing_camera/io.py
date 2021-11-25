@@ -4,6 +4,7 @@ import pointing_camera.common as common
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+from functools import lru_cache
 
 def write_image_level_outputs(exp, outdir):
 
@@ -58,6 +59,7 @@ def write_bintables_mef(cat, zps, sky, exp, outdir):
 
     os.rename(outname_tmp, outname)
 
+@lru_cache(maxsize=1)
 def load_static_badpix():
     par = common.pc_params()
 
@@ -70,6 +72,7 @@ def load_static_badpix():
 
     return mask
 
+@lru_cache(maxsize=1)
 def load_master_bias():
     """
     Read in the master bias.
@@ -95,6 +98,7 @@ def load_master_bias():
 
     return bias
 
+@lru_cache(maxsize=1)
 def load_master_dark():
     """
     Read in the master dark.
@@ -120,6 +124,7 @@ def load_master_dark():
 
     return dark
 
+@lru_cache(maxsize=1)
 def load_master_flat():
     """
     Read in the master flat.
