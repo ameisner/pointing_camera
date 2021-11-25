@@ -31,7 +31,7 @@ This produces the following output files:
     pointing_camera/py/pointing_camera> python pc_proc.py --help
 
     usage: pc_proc.py [-h] [--outdir OUTDIR] [--dont_write_detrended] [--skip_checkplot] [--nightly_subdir] [--send_redis] [--one_aper]
-                      [--bg_sigclip] [--multiproc MULTIPROC] [--max_n_stars MAX_N_STARS] [--pm_corr]
+                      [--bg_sigclip] [--multiproc MULTIPROC] [--max_n_stars MAX_N_STARS] [--pm_corr] [--skip_flatfield] [--sci_inst_name SCI_INST_NAME]
                       fname_in
 
     run the pointing camera reduction pipeline on an exposure
@@ -54,3 +54,6 @@ This produces the following output files:
       --max_n_stars MAX_N_STARS
                             limit analysis to brightest max_n_stars Gaia stars
       --pm_corr             make Gaia proper motion corrections based on MJD
+      --skip_flatfield      skip flatfielding during pixel-level detrending
+      --sci_inst_name SCI_INST_NAME
+                            name of science instrument
