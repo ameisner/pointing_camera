@@ -60,6 +60,7 @@ def read_gaia_cat(ra, dec, nmp=None):
 
     dt = time.time()-t0
 
-    print('took ' + '{:.3f}'.format(dt) + ' seconds to read Gaia files')
+    print('took ' + '{:.3f}'.format(dt) + ' seconds to read ' + \
+          str(len(flist)) + ' Gaia files')
 
     return np.hstack(tuple(tablist))
