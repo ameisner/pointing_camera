@@ -1025,19 +1025,12 @@ def circular_mask(radius_pix):
 
     sh = (par['ny'], par['nx'])
 
-    ybox, xbox = np.mgrid[0:sh[0], 0:sh[1]]
-
-    # these type conversions alone take ~0.1 seconds (on Cori) ...
-    xbox = xbox.astype('float')
-    ybox = ybox.astype('float')
+    Y, X = np.ogrid[:par['ny'], :par['nx']]
 
     x_center = central_pixel_coord(par['nx'])
     y_center = central_pixel_coord(par['ny'])
 
-    xbox -= x_center
-    ybox -= y_center
-
-    dist = np.hypot(xbox, ybox)
+    dist = np.hypot(X - x_center, Y - y_center)
 
     dist = dist.reshape(sh)
 
