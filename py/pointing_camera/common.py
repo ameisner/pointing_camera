@@ -1,8 +1,30 @@
+"""
+pointing_camera.common
+====================
+
+Central location for parameters expected to be used in various other places
+throughout the codebase. Goal is to factor out special numbers.
+
+"""
+
 import numpy as np
 
 def pc_params():
-    # eventually generalize this to return correct parameters
-    # for either el Nino or la Nina -- right now it's just for El Nino
+    """
+    Set of configuration parameters relevant to the pointing camera.
+
+    Returns
+    -------
+        par : dict
+            Dictionary of parameters.
+
+    Notes
+    -----
+        Eventually generalize this to return correct parameters for either El
+        Nino or la Nina or even the WIYN pointing camera -- right now it's just
+        for El Nino.
+
+    """
 
     par = {'nx' : 3296,
            'ny' : 2472,
