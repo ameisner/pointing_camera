@@ -8,6 +8,7 @@ from astropy import units as u
 from astropy.table import Table
 import time
 from multiprocessing import Pool
+from functools import lru_cache
 
 # this is intended to mirror how the DESI imaging surveys access
 # Gaia, namely through the HEALPix-elized full-sky catalog at:
@@ -31,21 +32,18 @@ def gaia_chunknames(ipix):
 
     flist = [os.path.join(gaia_dir, 'chunk-' + str(i).zfill(5) + 
                                     '.fits') for i in ipix]
+
+    flist.sort()
+
     return flist
 
-def read_gaia_cat(ra, dec, nmp=None):
-    # should add checks to make sure that ra and dec have compatible dimensions
-    # should also check that this works for both scalar and array ra/dec
-
-    ipix_all = healpy.pixelfunc.ang2pix(nside, ra, dec, nest=False, lonlat=True)
-
-    ipix_u = np.unique(ipix_all)
-
-    flist = gaia_chunknames(ipix_u)
+# in the densest fields the cached catalog
+# for one pointing camera FOV could be up to ~0.5 GB, so
+# don't want to keep many such catalogs cached
+@lru_cache(maxsize=1)
+def read_gaia_chunknames(flist, nmp=None):
 
     tablist = []
-
-    t0 = time.time()
 
     if nmp is not None:
         p = Pool(nmp)
@@ -57,6 +55,23 @@ def read_gaia_cat(ra, dec, nmp=None):
             print('READING : ', f)
             tab = fits.getdata(f)
             tablist.append(tab)
+
+    return tablist
+
+def read_gaia_cat(ra, dec, nmp=None):
+    # should add checks to make sure that ra and dec have compatible dimensions
+    # should also check that this works for both scalar and array ra/dec
+
+    ipix_all = healpy.pixelfunc.ang2pix(nside, ra, dec, nest=False, lonlat=True)
+
+    ipix_u = np.unique(ipix_all)
+
+    flist = gaia_chunknames(ipix_u)
+
+    t0 = time.time()
+
+    # tuple so that caching decorator works...
+    tablist = read_gaia_chunknames(tuple(flist), nmp=nmp)
 
     dt = time.time()-t0
 
