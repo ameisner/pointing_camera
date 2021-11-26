@@ -1,9 +1,27 @@
+"""
+pointing_camera.exposure
+======================
+
+A class representing a pointing camera exposure.
+"""
+
+
 import pointing_camera.util as util
 
 class PC_exposure:
     """Object encapsulating the contents of a single pointing camera exposure"""
 
     def __init__(self, fname_im):
+        """
+        Create a pointing camera exposure object.
+
+        Parameters
+        ----------
+            fname_in : str
+                File name of the raw pointing camera FITS image.
+
+        """
+
         im, h = util.load_exposure_image(fname_im)
 
         util.check_image_dimensions(im)
