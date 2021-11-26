@@ -1,5 +1,5 @@
 """
-pointing_camera.util
+pointing_camera.gaia
 ==================
 
 Utilities for reading in the Gaia catalog.

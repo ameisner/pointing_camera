@@ -1,3 +1,10 @@
+"""
+pointing_camera.zp
+==================
+
+Calculations and plots related to determining pointing camera image zeropoints.
+"""
+
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')

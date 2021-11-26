@@ -5,7 +5,6 @@ pointing_camera.exposure
 A class representing a pointing camera exposure.
 """
 
-
 import pointing_camera.util as util
 
 class PC_exposure:

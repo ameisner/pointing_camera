@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+"""
+pointing_camera.pc_proc
+=====================
+
+Main pipeline driver for processing pointing camera images.
+"""
+
 import argparse
 from datetime import datetime
 import os

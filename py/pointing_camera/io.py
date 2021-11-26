@@ -1,3 +1,10 @@
+"""
+pointing_camera.io
+================
+
+I/O functions for pointing camera reduction pipeline.
+"""
+
 import astropy.io.fits as fits
 import os
 import pointing_camera.common as common

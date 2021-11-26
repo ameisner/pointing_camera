@@ -1,3 +1,10 @@
+"""
+pointing_camera.util
+==================
+
+A collection of pointing camera related utility functions.
+"""
+
 import astropy.io.fits as fits
 from astropy import wcs
 import os
