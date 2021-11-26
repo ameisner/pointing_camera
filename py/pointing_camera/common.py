@@ -27,6 +27,7 @@ def pc_params():
            'ncpus': 8,
            'science_radius_pix': 665.49217,
            'zp_adu_per_s': 17.58,
-           'dome_thresh_adu_per_s': 0.5}
+           'dome_thresh_adu_per_s': 0.5,
+           'gaia_nside': 32}
 
     return par
