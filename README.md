@@ -62,24 +62,24 @@ This produces the following output files:
 
 | field                | description |
 | -------------------- | ----------- |
-| timestamp            |             |
-| zp_adu_per_s         |             |
-| sky_adu_per_s        |             |
-| mjd_obs              |             |
-| n_stars_for_zp       |             |
-| sky_adu_per_s_q1     |             |
-| sky_adu_per_s_q2     |             |
-| sky_adu_per_s_q3     |             |
-| sky_adu_per_s_q4     |             |
-| zp_adu_per_s_q1      |             |
-| zp_adu_per_s_q2      |             |
-| zp_adu_per_s_q3      |             |
-| zp_adu_per_s_q4      |             |
-| n_stars_for_zp_q1    |             |
-| n_stars_for_zp_q2    |             |
-| n_stars_for_zp_q3    |             |
-| n_stars_for_zp_q4    |             |
-| sky_adu_per_s_desi   |             |
-| zp_adu_per_s_desi    |             |
-| flag                 |             |
-| n_stars_for_zp_desi  |             |
+| timestamp            | KPNO local time formatted like "2021-06-21/22:13:35/MST/"                        |
+| zp_adu_per_s         | photometric zeropoint in Gaia-like magnitudes, entire image (1 ADU/s source)     |
+| sky_adu_per_s        | sky brightness in ADU/s/pix, entire image                                        |
+| mjd_obs              | MJD at start of exposure                                                         |
+| n_stars_for_zp       | number of stars used to determine the zeropoint, entire image                    |
+| sky_adu_per_s_q1     | sky brightness in ADU/s/pix, image quadrant 1                                    |
+| sky_adu_per_s_q2     | sky brightness in ADU/s/pix, image quadrant 2                                    |
+| sky_adu_per_s_q3     | sky brightness in ADU/s/pix, image quadrant 3                                    |
+| sky_adu_per_s_q4     | sky brightness in ADU/s/pix, image quadrant 4                                    |
+| zp_adu_per_s_q1      | photometric zeropoint in Gaia-like magnitudes, image quadrant 1 (1 ADU/s source) |
+| zp_adu_per_s_q2      | photometric zeropoint in Gaia-like magnitudes, image quadrant 2 (1 ADU/s source) |
+| zp_adu_per_s_q3      | photometric zeropoint in Gaia-like magnitudes, image quadrant 3 (1 ADU/s source) |
+| zp_adu_per_s_q4      | photometric zeropoint in Gaia-like magnitudes, image quadrant 4 (1 ADU/s source) |
+| n_stars_for_zp_q1    | number of stars used to determine the zeropoint in image quadant 1               |
+| n_stars_for_zp_q2    | number of stars used to determine the zeropoint in image quadant 2               |
+| n_stars_for_zp_q3    | number of stars used to determine the zeropoint in image quadant 3               |
+| n_stars_for_zp_q4    | number of stars used to determine the zeropoint in image quadant 4               |
+| sky_adu_per_s_desi   | sky brightness in ADU/s/pix (DESI FOV only)                                      |
+| zp_adu_per_s_desi    | photometric zeropoint in Gaia-like magnitudes, DESI FOV only (1 ADU/s source)    |
+| n_stars_for_zp_desi  | number of stars used to determine the zeropoint DESI FOV only                    |
+| flag                 | dome vignetting flag; 1 = dome (bad), 0 = no dome (good)                         |
