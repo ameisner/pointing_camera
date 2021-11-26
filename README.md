@@ -57,3 +57,29 @@ This produces the following output files:
       --skip_flatfield      skip flatfielding during pixel-level detrending
       --sci_inst_name SCI_INST_NAME
                             name of science instrument
+
+# Redis telemetry
+
+| field                | description |
+| -------------------- | ----------- |
+| timestamp            |             |
+| zp_adu_per_s         |             |
+| sky_adu_per_s        |             |
+| mjd_obs              |             |
+| n_stars_for_zp       |             |
+| sky_adu_per_s_q1     |             |
+| sky_adu_per_s_q2     |             |
+| sky_adu_per_s_q3     |             |
+| sky_adu_per_s_q4     |             |
+| zp_adu_per_s_q1      |             |
+| zp_adu_per_s_q2      |             |
+| zp_adu_per_s_q3      |             |
+| zp_adu_per_s_q4      |             |
+| n_stars_for_zp_q1    |             |
+| n_stars_for_zp_q2    |             |
+| n_stars_for_zp_q3    |             |
+| n_stars_for_zp_q4    |             |
+| sky_adu_per_s_desi   |             |
+| zp_adu_per_s_desi    |             |
+| flag                 |             |
+| n_stars_for_zp_desi  |             |
