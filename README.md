@@ -1,6 +1,6 @@
 This pointing camera reduction/analysis pipeline is implemented in pure Python. It has a relatively small number of dependencies that must be installed (see requirements.txt).
 
-It also requires Gaia catalog files accessed via an environment variable called PC_GAIA_DIR and a static bad pixel mask accessed via an environment variable called POINTING_CAMERA_META that points to a directory for ancillary calibration products.
+It also requires Gaia catalog files accessed via an environment variable called `PC_GAIA_DIR` and a static bad pixel mask accessed via an environment variable called `POINTING_CAMERA_META` that points to a directory for ancillary calibration products.
 
 Here is an example invocation for running the full pipeline:
 
@@ -13,9 +13,9 @@ This produces the following output files:
 
 * The -detrended output is a detrended version of the raw pointing camera image.
 * The -summary output is a multi-extension FITS file containing:
-  * The CATALOG HDU, a source catalog with centroids and fluxes.
-  * The ZEROPOINTS HDU, a summary table of zeropoints (for several apertures and different image regions).
-  * The SKY HDU, a summary table of sky brightness measurements.
+  * The `CATALOG` HDU, a source catalog with centroids and fluxes.
+  * The `ZEROPOINTS` HDU, a summary table of zeropoints (for several apertures and different image regions).
+  * The `SKY` HDU, a summary table of sky brightness measurements.
 
 ```
     Filename: 20191103/20191103.234228.00498_03000-summary.fits
