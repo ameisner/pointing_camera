@@ -19,9 +19,6 @@ import astropy.io.fits as fits
 import healpy
 import numpy as np
 import os
-from astropy.coordinates import SkyCoord
-from astropy import units as u
-from astropy.table import Table
 import time
 from multiprocessing import Pool
 from functools import lru_cache
@@ -78,9 +75,9 @@ def read_gaia_chunknames(flist, nmp=None):
 
     Returns
     -------
-        tablist : list
-            List of astropy Table objects, with one element per element of
-            the input file list.
+        numpy.ndarray
+            Concatenated catalog combining the many per-HEALPix pixel
+            catalogs that have been read in.
 
     Notes
     -----
@@ -109,8 +106,7 @@ def read_gaia_chunknames(flist, nmp=None):
             tab = fits.getdata(f)
             tablist.append(tab)
 
-    # should probably just do the table stacking here...
-    return tablist
+    return np.hstack(tuple(tablist))
 
 def read_gaia_cat(ra, dec, nmp=None):
     """
@@ -131,7 +127,7 @@ def read_gaia_cat(ra, dec, nmp=None):
 
     Returns
     -------
-        astropy.table.table.Table
+        cat : numpy.ndaray
             The Gaia catalog for the requested set of (ra, dec) coodinates.
 
     Notes
@@ -155,11 +151,11 @@ def read_gaia_cat(ra, dec, nmp=None):
     t0 = time.time()
 
     # tuple so that caching decorator works...
-    tablist = read_gaia_chunknames(tuple(flist), nmp=nmp)
+    cat = read_gaia_chunknames(tuple(flist), nmp=nmp)
 
     dt = time.time()-t0
 
     print('took ' + '{:.3f}'.format(dt) + ' seconds to read ' + \
           str(len(flist)) + ' Gaia files')
 
-    return np.hstack(tuple(tablist))
+    return cat
