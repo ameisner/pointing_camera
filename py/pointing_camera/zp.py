@@ -15,7 +15,8 @@ from astropy.table import Table, vstack
 from multiprocessing import Pool
 
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
-            one_aper=False, checkplot=True, science_fov_only=False):
+            one_aper=False, checkplot=True, science_fov_only=False,
+            sci_fov_checkplot=False):
     # quadrant = 0 means whole image (all quadrants combined)
 
     print('Computing zeropoint for quadrant : ', quadrant, \
@@ -99,14 +100,15 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
     best_aper_ind = 1 if not one_aper else 0
 
     if checkplot and (quadrant == 0) and (aper_ind == best_aper_ind) and \
-       (not science_fov_only):
+       (science_fov_only == sci_fov_checkplot):
         plt.cla()
         plt.figure(1)
         xtitle = 'G + 0.25*(BP-RP)'
         ytitle = '-2.5' + r'$\times$' + 'log' + r'$_{10}$' + '(ADU/sec)'
         title = fname_im.split('/')[-1]
         title = title.replace('.fits', '')
-        title += '; aper' + str(best_aper_ind) + '; all quads'
+        title += '; aper' + str(best_aper_ind)
+        title += '; sci FOV' if sci_fov_checkplot else '; all quads'
 
         plt.scatter(cat['G_PRIME'], m_inst, s=20, edgecolor='none',
                     facecolor='k')
@@ -138,7 +140,8 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 
     return result
 
-def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
+def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
+                  sci_fov_checkplot=False):
 
     print('Attempting to calculate zeropoints')
 
@@ -149,9 +152,9 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None):
     args = []
     for q in [0, 1, 2, 3, 4]:
         for aper_ind in range(len(aper_radii)):
-            args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, checkplot, one_aper, False))
+            args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, one_aper, checkplot, False, sci_fov_checkplot))
             if q == 0:
-                args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, checkplot, one_aper, True))
+                args.append((cat, aper_ind, exp.time_seconds, exp.fname_im, q, one_aper, checkplot, True, sci_fov_checkplot))
 
     if nmp is not None:
         p = Pool(min(nmp, len(args)))

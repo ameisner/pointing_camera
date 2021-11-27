@@ -20,7 +20,8 @@ import pointing_camera.common as common
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
-            pm_corr=False, skip_flatfield=False, sci_inst_name='desi'):
+            pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
+            sci_fov_checkplot=False):
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
@@ -48,7 +49,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     # intentionally don't pass nmp to zps.calc_many_zp, since doing
     # so didn't appear to provide any speed-up; could revisit later
-    zps = zp.calc_many_zps(cat, exp, one_aper=one_aper, checkplot=(not skip_checkplot))
+    zps = zp.calc_many_zps(cat, exp, one_aper=one_aper,
+                           checkplot=(not skip_checkplot),
+                           sci_fov_checkplot=sci_fov_checkplot)
 
     if write_outputs:
         if not os.path.exists(outdir):
@@ -130,6 +133,10 @@ if __name__ == "__main__":
     parser.add_argument('--sci_inst_name', default='desi', type=str,
                         help='name of science instrument')
 
+    parser.add_argument('--sci_fov_checkplot', default=False,
+                        action='store_true',
+                        help="restrict checkplot to science instrument FOV")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -145,4 +152,5 @@ if __name__ == "__main__":
             one_aper=args.one_aper, bg_sigclip=args.bg_sigclip,
             nmp=args.multiproc, max_n_stars=args.max_n_stars,
             pm_corr=args.pm_corr, skip_flatfield=args.skip_flatfield,
-            sci_inst_name=args.sci_inst_name)
+            sci_inst_name=args.sci_inst_name,
+            sci_fov_checkplot=args.sci_fov_checkplot)
