@@ -26,6 +26,8 @@ This produces the following output files:
       3  SKY           1 BinTableHDU     90   1R x 26C   [E, D, E, D, D, 91A, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, D, 8A]
 ```
 
+![detrending example](static/pointing_camera-raw_detrended.gif)
+
 # full help for running the pipeline
 
     pointing_camera/py/pointing_camera> python pc_proc.py --help
