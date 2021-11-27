@@ -103,12 +103,13 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
        (science_fov_only == sci_fov_checkplot):
         plt.cla()
         plt.figure(1)
-        xtitle = 'G + 0.25*(BP-RP)'
+        xtitle = 'G + 0.25' + r'$\times$' + '(BP-RP) [' + \
+                 str(len(cat)) + ' stars]'
         ytitle = '-2.5' + r'$\times$' + 'log' + r'$_{10}$' + '(ADU/sec)'
         title = fname_im.split('/')[-1]
         title = title.replace('.fits', '')
-        title += '; aper' + str(best_aper_ind)
-        title += '; sci FOV' if sci_fov_checkplot else '; all quads'
+        title += '; aper' + str(best_aper_ind) + '; '
+        title += 'sci FOV' if sci_fov_checkplot else 'full FOV'
 
         plt.scatter(cat['G_PRIME'], m_inst, s=20, edgecolor='none',
                     facecolor='k')
