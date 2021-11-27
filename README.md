@@ -10,9 +10,10 @@ This produces the following output files:
 
     20191103/20191103.234228.00498_03000-detrended.fits
     20191103/20191103.234228.00498_03000-summary.fits
+    20191103/20191103.234228.00498_03000-zp.png
 
-* The -detrended output is a detrended version of the raw pointing camera image.
-* The -summary output is a multi-extension FITS file containing:
+* The -detrended.fits output is a detrended version of the raw pointing camera image.
+* The -summary.fits output is a multi-extension FITS file containing:
   * The `CATALOG` HDU, a source catalog with centroids and fluxes.
   * The `ZEROPOINTS` HDU, a summary table of zeropoints (for several apertures and different image regions).
   * The `SKY` HDU, a summary table of sky brightness measurements.
@@ -25,20 +26,24 @@ This produces the following output files:
       2  ZEROPOINTS    1 BinTableHDU     60   35R x 11C   [K, K, D, K, D, E, E, D, 91A, D, 8A]
       3  SKY           1 BinTableHDU     90   1R x 26C   [E, D, E, D, D, 91A, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, D, 8A]
 ```
+
+* The -zp.png output is a checkplot comparing the pointing camera instrumental mags to Gaia mags.
+
 ## detrending example
 
 ![detrending example](static/pointing_camera-raw_detrended.gif)
 
 ## photometric zeropoint checkplot example
 
-![zeropoint checkplot example](static/20210611.221106.01616_20000-zp.png)
+<img src="static/20210611.221106.01616_20000-zp.png" width="400">
 
 # full help for running the pipeline
 
     pointing_camera/py/pointing_camera> python pc_proc.py --help
 
     usage: pc_proc.py [-h] [--outdir OUTDIR] [--dont_write_detrended] [--skip_checkplot] [--nightly_subdir] [--send_redis] [--one_aper]
-                      [--bg_sigclip] [--multiproc MULTIPROC] [--max_n_stars MAX_N_STARS] [--pm_corr] [--skip_flatfield] [--sci_inst_name SCI_INST_NAME]
+                      [--bg_sigclip] [--multiproc MULTIPROC] [--max_n_stars MAX_N_STARS] [--pm_corr] [--skip_flatfield]
+		      [--sci_inst_name SCI_INST_NAME] [--sci_fov_checkplot]
                       fname_in
 
     run the pointing camera reduction pipeline on an exposure
@@ -64,6 +69,7 @@ This produces the following output files:
       --skip_flatfield      skip flatfielding during pixel-level detrending
       --sci_inst_name SCI_INST_NAME
                             name of science instrument
+      --sci_fov_checkplot   restrict checkplot to science instrument FOV
 
 # Redis telemetry
 
