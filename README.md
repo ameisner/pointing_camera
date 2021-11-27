@@ -25,8 +25,13 @@ This produces the following output files:
       2  ZEROPOINTS    1 BinTableHDU     60   35R x 11C   [K, K, D, K, D, E, E, D, 91A, D, 8A]
       3  SKY           1 BinTableHDU     90   1R x 26C   [E, D, E, D, D, 91A, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, E, D, D, 8A]
 ```
+## detrending example
 
 ![detrending example](static/pointing_camera-raw_detrended.gif)
+
+## photometric zeropoint checkplot example
+
+![zeropoint checkplot example](static/20210611.221106.01616_20000-zp.png)
 
 # full help for running the pipeline
 
