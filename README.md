@@ -1,3 +1,5 @@
+# pointing_camera
+
 This pointing camera reduction/analysis pipeline is implemented in pure Python. It has a relatively small number of dependencies that must be installed (see requirements.txt).
 
 It also requires Gaia catalog files accessed via an environment variable called `PC_GAIA_DIR` and a static bad pixel mask accessed via an environment variable called `POINTING_CAMERA_META` that points to a directory for ancillary calibration products.
@@ -35,7 +37,7 @@ This produces the following output files:
 
 ## photometric zeropoint checkplot example
 
-<img src="static/20210611.221106.01616_20000-zp.png" width="400">
+<img src="static/20210611.221106.01616_20000-zp.png" width="550">
 
 # full help for running the pipeline
 

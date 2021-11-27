@@ -22,6 +22,59 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
             sci_fov_checkplot=False):
+    """
+    Process one pointing camera image.
+
+    Parameters
+    ----------
+        fname_in : str
+            Full name of raw pointing camera image file to process.
+        outdir : str, optional
+            Full path of output directory. If not specified, outputs are not
+            written. Default is None.
+        dont_write_detrended : bool, optional
+            Don't write out detrended image.
+        skip_checkplot : bool, optional
+            Skip making photometric zeropoint checkplot.
+        nightly_subdir : bool, optional
+            Create an observing night subdirectory within outdir, where
+            this subdirectory name has the format YYYYMMDD.
+        send_redis : bool, optional
+            If True, send telemetry with reduction pipeline results to the
+            Mayall's engineering database. This only makes sense to enable
+            when running within the appropriate computing infrastructure
+            on the mountain.
+        one_aper : bool, optional
+            To reduce run time, do aperture photometry for only one
+            aperture radius. When only one aperture radius is used, it is
+            taken to be the 'standard' aperture radius of 2.5 pixels.
+        bg_sigclip : bool, optional
+            Use sigma clipping when computing the background level. I believe
+            that skipping the sigma clipping is meant to be an optimization
+            toward minimizing run time.
+        nmp : int, optional
+            Number of threads for multiprocessing. Default is None,
+            in which case multiprocessing is not used.
+        max_n_stars : int, optional
+            Maximum number of Gaia stars to recentroid/photometer. The
+            idea is to cap the number of stars analyzed to avoid excessively
+            long run times in dense stellar fields.
+        pm_corr : bool, optional
+            If True, correct Gaia stars for proper motion so that their
+            positions match the epoch of pointing camera observation. This
+            is False by default given that the recentroiding allowance should
+            be large enough to accommodate basically all stellar proper motions.
+        skip_flatfield : bool, optional
+            If True, skip the flatfielding step of detrending. False by default.
+            Could be useful for e.g., building a sky flat or star flat.
+        sci_inst_name : str, optional
+            The idea is not to hardcode 'desi' or 'DESI', in case this pipeline
+            is run at some point with a different telescope and/or instrument.
+        sci_fov_checkplot : bool, optional
+            Set True to limit photometric zeropoint checkplot star sample to
+            only those stars that fall within the science instrument's FOV.
+
+    """
 
     print('Starting pointing camera reduction pipeline at: ' +
           str(datetime.utcnow()) + ' UTC')
