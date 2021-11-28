@@ -466,6 +466,8 @@ def sky_summary_table(exp):
     t['mjd_obs'] = exp.header['MJD-OBS']
     t['obs_night'] = exp.obs_night
 
+    add_field_center_cols(t, exp.header)
+
     if exp.has_dome is not None:
         t['has_dome'] = exp.has_dome.astype('int16')
 
@@ -1056,6 +1058,12 @@ def add_field_center_cols(tab, header):
         header : astropy.io.fits.header.Header
             FITS header that should include cards RADEG, DECDEG,
             REAL_RA, REAL_DEC
+
+    Notes
+    -----
+        Input table is modified via the addition of columns (though I don't
+        currently check whether the columns to be added already exist within the
+        input table).
 
     """
 
