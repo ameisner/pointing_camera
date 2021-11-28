@@ -168,6 +168,10 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
     results = vstack(results)
     results['mjd_obs'] = exp.header['MJD-OBS']
     results['obs_night'] = exp.obs_night
+    results['target_ra_deg'] = exp.header['RADEG']
+    results['target_dec_deg'] = exp.header['DECDEG']
+    results['real_ra_deg'] = exp.header['REAL_RA']
+    results['real_dec_deg'] = exp.header['REAL_DEC']
 
     if exp.has_dome is not None:
         results['has_dome'] = exp.has_dome.astype('int16')
