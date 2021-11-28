@@ -1044,3 +1044,26 @@ def circular_mask(radius_pix):
     mask = (dist <= radius_pix)
 
     return mask
+
+def add_field_center_cols(tab, header):
+    """
+    Add columns giving the RA, Dec coordinates of the field being observed.
+
+    Parameters
+    ----------
+        tab : astropy.table.table.Table
+            Table to add columns to.
+        header : astropy.io.fits.header.Header
+            FITS header that should include cards RADEG, DECDEG,
+            REAL_RA, REAL_DEC
+
+    """
+
+    card2col = {'RADEG' : 'target_ra_deg',
+                'DECDEG' : 'target_dec_deg',
+                'REAL_RA' : 'real_ra_deg',
+                'REAL_DEC' : 'real_dec_deg'}
+
+    for card in card2col.keys():
+        if card in header:
+            tab[card2col[card]] = header[card]

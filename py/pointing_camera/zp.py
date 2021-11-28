@@ -13,6 +13,7 @@ import pointing_camera.common as common
 import copy
 from astropy.table import Table, vstack
 from multiprocessing import Pool
+import pointing_camera.util as util
 
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
             one_aper=False, checkplot=True, science_fov_only=False,
@@ -168,10 +169,8 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
     results = vstack(results)
     results['mjd_obs'] = exp.header['MJD-OBS']
     results['obs_night'] = exp.obs_night
-    results['target_ra_deg'] = exp.header['RADEG']
-    results['target_dec_deg'] = exp.header['DECDEG']
-    results['real_ra_deg'] = exp.header['REAL_RA']
-    results['real_dec_deg'] = exp.header['REAL_DEC']
+
+    util.add_field_center_cols(results, exp.header)
 
     if exp.has_dome is not None:
         results['has_dome'] = exp.has_dome.astype('int16')
