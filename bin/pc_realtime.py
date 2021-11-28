@@ -5,10 +5,24 @@ import glob
 import time
 import os
 import pointing_camera.pc_proc as pipeline
+import redis
 
 default_data_dir = '/global/cscratch1/sd/ameisner/pointing_camera/nino' # NERSC
 
 files_processed = []
+
+def check_tracking():
+
+    host = os.environ['REDISHOST']
+    port = int(os.environ['REDISPORT'])
+    db = int(os.environ['REDISDBNUM'])
+    key = os.environ['REDISKEY_TCS']
+
+    r = redis.Redis(host=host, port=port, db=db)
+
+    tracking = int(r.hget(key, 'tracking'))
+
+    return bool(tracking)
 
 def _reduce_new_files(flist_wcs, outdir='.', dont_send_redis=False):
 
@@ -33,7 +47,7 @@ def _reduce_new_files(flist_wcs, outdir='.', dont_send_redis=False):
         except:
             print('PROCESSING FAILURE: ' + f_fits)
 
-def _proc_new_files(data_dir=default_data_dir, outdir='.', dont_send_redis=False):
+def _proc_new_files(data_dir=default_data_dir, outdir='.', dont_send_redis=False, do_check_tracking=False):
 
     print('Checking for new .wcs files...')
 
@@ -56,17 +70,25 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', dont_send_redis=False
         flist_wcs_new = list(flist_wcs_new)
         flist_wcs_new.sort()
 
-        _reduce_new_files(flist_wcs_new, outdir=outdir, dont_send_redis=dont_send_redis)
+        do_redux = True
+        if do_check_tracking:
+            do_redux = do_redux and check_tracking()
+            if not do_redux:
+                print('Skipping ' + flist_wcs[0] + ' because it may be affected by a slew...')
+
+        if do_redux:
+            _reduce_new_files(flist_wcs_new, outdir=outdir, dont_send_redis=dont_send_redis)
 
         files_processed = files_processed + flist_wcs_new
 
 def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.',
-           dont_send_redis=False):
+           dont_send_redis=False, do_check_tracking=False):
 
     while True:
         print('Waiting', wait_seconds, ' seconds')
         time.sleep(wait_seconds)
-        _proc_new_files(data_dir=data_dir, outdir=outdir, dont_send_redis=dont_send_redis)
+        _proc_new_files(data_dir=data_dir, outdir=outdir, dont_send_redis=dont_send_redis,
+                        do_check_tracking=do_check_tracking)
 
 def _do_veto(fname):
     assert(os.path.exists(fname))
@@ -105,6 +127,10 @@ if __name__ == "__main__":
                         action='store_true',
                         help="don't send results to Redis")
 
+    parser.add_argument('--do_check_tracking', default=False,
+                        action='store_true',
+                        help="check whether telescope is tracking")
+
     args = parser.parse_args()
 
     assert(args.wait_seconds >= 1)
@@ -113,4 +139,5 @@ if __name__ == "__main__":
         _do_veto(args.veto_list)
 
     _watch(wait_seconds=args.wait_seconds, data_dir=args.data_dir,
-           outdir=args.outdir, dont_send_redis=args.dont_send_redis)
+           outdir=args.outdir, dont_send_redis=args.dont_send_redis,
+           do_check_tracking=args.do_check_tracking)
