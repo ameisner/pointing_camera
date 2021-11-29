@@ -170,6 +170,9 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
     results['mjd_obs'] = exp.header['MJD-OBS']
     results['obs_night'] = exp.obs_night
 
+    if 'DEV_FNUM' in exp.header:
+        results['DEV_FNUM'] = exp.header['DEV_FNUM']
+
     util.add_field_center_cols(results, exp.header)
 
     if exp.has_dome is not None:

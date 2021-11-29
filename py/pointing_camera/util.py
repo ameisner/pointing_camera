@@ -468,6 +468,9 @@ def sky_summary_table(exp):
 
     add_field_center_cols(t, exp.header)
 
+    if 'DEV_FNUM' in exp.header:
+        t['DEV_FNUM'] = exp.header['DEV_FNUM']
+
     if exp.has_dome is not None:
         t['has_dome'] = exp.has_dome.astype('int16')
 
