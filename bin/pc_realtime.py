@@ -5,13 +5,45 @@ import glob
 import time
 import os
 import pointing_camera.pc_proc as pipeline
+import pointing_camera.io as io
 import redis
 
 default_data_dir = '/global/cscratch1/sd/ameisner/pointing_camera/nino' # NERSC
 
 files_processed = []
 
+def pre_cache_all_calibs():
+    """
+    Read in master calibration images so that they are pre-cached.
+
+    Notes
+    -----
+        Currently the master calibration images are: static bad pixel mask,
+        bias, dark current and flat field.
+
+    """
+
+    print('pre-caching master calibration images')
+
+    io.load_static_badpix()
+    io.load_master_bias()
+    io.load_master_dark()
+    io.load_master_flat()
+
 def check_tracking():
+    """
+    Check whether or not the telescope is currently tracking.
+
+    Returns
+    -------
+        tracking : bool
+            Whether or not the telscope is currently tracking.
+
+    Notes
+    -----
+        Requires MED Redis access...
+
+    """
 
     host = os.environ['REDISHOST']
     port = int(os.environ['REDISPORT'])
@@ -83,6 +115,8 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', dont_send_redis=False
 
 def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.',
            dont_send_redis=False, do_check_tracking=False):
+
+    pre_cache_all_calibs()
 
     while True:
         print('Waiting', wait_seconds, ' seconds')
