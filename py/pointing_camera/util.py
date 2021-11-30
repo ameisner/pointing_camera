@@ -23,8 +23,28 @@ from astropy.time import Time
 from multiprocessing import Pool
 
 def get_wcs_filename(fname_im, verify=True):
-    # right now this is pretty trivial but in perhaps it could
-    # become more complicated in the future
+    """
+    Construct the astrometry.net WCS file name corresponding to a raw image.
+
+    Parameters
+    ----------
+        fname_im : str
+            Full path of raw image file name for which to construct the
+            corresponding WCS file name.
+        verify : bool (optional)
+            If True, check whether the WCS file name constructed exists.
+
+    Returns
+    -------
+        fname_wcs : str
+            WCS file name constructed including full path.
+
+    Notes
+    -----
+        Currently this is pretty trivial but perhaps it could
+        become more complicated in the future.
+
+    """
 
     fname_wcs = fname_im.replace('.fits', '.wcs')
 
@@ -34,6 +54,24 @@ def get_wcs_filename(fname_im, verify=True):
     return fname_wcs
 
 def load_wcs(fname_wcs):
+    """
+    Load astrometry.net WCS file.
+
+
+    Parameters
+    ----------
+        fname_wcs : str
+            Full file name of the WCS file to be read in.
+
+    Returns
+    -------
+        w : astropy.wcs.wcs.WCS
+            Astropy WCS object.
+        header : astropy.io.fits.header.Header
+            WCS file as a header object.
+
+    """
+
     assert(os.path.exists(fname_wcs))
 
     hdul = fits.open(fname_wcs)
@@ -49,8 +87,28 @@ def load_wcs(fname_wcs):
     return w, header
 
 def load_exposure_image(fname):
-    # this gets the pixel data and header for the actual pointing camera
-    # image -- the WCS solution is loaded separately via load_wcs
+    """
+    Read in raw pointing camera image and its header.
+
+    Parameters
+    ----------
+        fname : str
+            Full file path to the raw image.
+
+    Returns
+    -------
+        im : numpy.ndarray
+            Raw image pixel data.
+        h  : astropy.io.fits.header.Header
+            Raw image FITS header object.
+
+    Notes
+    -----
+        This function gets the pixel data and header for the actual pointing
+        camera image -- the WCS solution is loaded separately via the
+        load_wcs function.
+
+    """
 
     assert(os.path.exists(fname))
 
@@ -63,8 +121,19 @@ def load_exposure_image(fname):
     return im, h
 
 def check_image_dimensions(image):
-    # check that image dimensions make sense
-    # of particular relevance is not getting fooled by downbinned data
+    """
+    Verify that raw image dimensions are correct.
+
+    Parameters
+    ----------
+        image : numpy.ndarray
+            Raw pointing camera image.
+
+    Notes
+    -----
+        Of particular relevance is not getting fooled by downbinned data...
+
+    """
 
     print('Checking raw pointing camera image dimensions...')
 
