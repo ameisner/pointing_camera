@@ -14,6 +14,23 @@ import matplotlib.pyplot as plt
 from functools import lru_cache
 
 def write_image_level_outputs(exp, outdir):
+    """
+    Write image-level output of pointing camera reduction pipeline.
+
+    Parameters
+    ----------
+        exp : exposure.PC_exposure
+            Pointing camera exposure object.
+        outdir : str
+            Full path of output directory.
+
+    Notes
+    -----
+        For now the only image-level output that gets written is the
+        the detrended image. Could imagine other image-level reduction
+        pipeline outputs in the future...
+
+    """
 
     print('Attempting to write image level outputs')
 
@@ -36,6 +53,25 @@ def write_image_level_outputs(exp, outdir):
 
 
 def write_bintables_mef(cat, zps, sky, exp, outdir):
+    """
+    Write binary table pipeline outputs to a multi-extension FITS file.
+
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Table containing the source catalog with centroid, photometry
+            measurements and Gaia cross-match columns.
+        zps : astropy.table.table.Table
+            Table containing the summary of photometric zeropoint measurements.
+        sky : astropy.table.table.Table
+            Table containing the sky brightness measurements.
+        exp : exposure.PC_exposure
+            Pointing camera exposure object.
+        outdir : str
+            Full path of output directory.
+
+    """
+
     print('Attempting to write binary tables as multi-extension FITS')
 
     # for now assume that cat, zps, sky tables all exist
@@ -68,6 +104,16 @@ def write_bintables_mef(cat, zps, sky, exp, outdir):
 
 @lru_cache(maxsize=1)
 def load_static_badpix():
+    """
+    Read in the static bad pixel mask.
+
+    Returns
+    -------
+        mask : numpy.ndarray
+            Static bad pixel mask image. Should have the same dimensions
+            as a standard raw image would. Should be an integer data type.
+
+    """
     par = common.pc_params()
 
     fname = os.path.join(os.environ[par['meta_env_var']],
@@ -159,6 +205,17 @@ def load_master_flat():
     return flat
 
 def save_zp_checkplot(exp, outdir):
+    """
+    Save a file with the zeropoint check plot.
+
+    Parameters
+    ----------
+        exp : exposure.PC_exposure
+            Pointing camera exposure object.
+        outdir : str
+            Full path of output directory.
+
+    """
 
     print('Attempting to save zeropoint check plot')
 
