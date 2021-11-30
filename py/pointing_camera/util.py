@@ -21,6 +21,7 @@ import photutils
 from astropy.stats import sigma_clipped_stats
 from astropy.time import Time
 from multiprocessing import Pool
+from functools import lru_cache
 
 def get_wcs_filename(fname_im, verify=True):
     """
@@ -1101,6 +1102,7 @@ def central_pixel_coord(sidelen):
 
     return coord
 
+@lru_cache(maxsize=1)
 def circular_mask(radius_pix):
     """
     Create a boolean mask representing a circle centered at the image center.
