@@ -681,8 +681,29 @@ def pc_aper_phot(im, cat, one_aper=False, bg_sigclip=False):
     return cat
 
 def get_g_prime(G, BP_RP):
-    # right now this is pretty much trivial but in the future it
-    # could become more complex
+    """
+    Color-corrected Gaia magnitudes to match the pointing camera bandpass.
+
+    Parameters
+    ----------
+        G : numpy.ndarray
+            Gaia G magnitude(s). Should work for either array or
+            scalar input. Input dimensions need to be compatible with those
+            of BP_RP input.
+        BP_RP :
+            Gaia BP-RP color(s). Should work for either array or
+            scalar input. Input dimensions need to be compatible with those
+            of G input.
+
+    Notes
+    -----
+        Right now this is pretty much trivial but in the future it
+        could become more complex. For instance, the color correction
+        could get updated to have a second order term or to be
+        piecewise linear. Other potential areas for future work are
+        handling NaN BP_RP values and/or bounding BP_RP to some range.
+
+    """
 
     par = common.pc_params()
 
