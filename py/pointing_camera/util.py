@@ -148,7 +148,24 @@ def check_image_dimensions(image):
     print('Raw pointing camera image has correct dimensions')
 
 def get_exptime(h_im, milliseconds=False):
-    # h_im should be a header of a raw pointing camera image
+    """
+    Retrieve exposure time from raw pointing camera image header.
+
+    Parameters
+    ----------
+        h_im : astropy.io.fits.header.Header
+            Header of a raw pointing camera image.
+        milliseconds : bool
+            If True, return exposure time in milliseconds (default
+            units for return value are seconds).
+
+    Returns
+    -------
+        float
+            Exposure time in either seconds (when milliseconds=False) or
+            ms (when milliseconds=True).
+
+    """
 
     if 'EXPOSURE' in h_im:
         exptime_ms = h_im['EXPOSURE']
@@ -171,6 +188,21 @@ def get_exptime(h_im, milliseconds=False):
         return exptime_ms/1000.0
 
 def _check_bitpix(h_im):
+    """
+    Check that the raw FITS header indicates the correct data type.
+
+    Parameters
+    ----------
+        h_im : astropy.io.fits.header.Header
+            Header of a raw pointing camera image
+
+    Notes
+    -----
+        Concern is to flag/avoid cases where the camera may be reading
+        out in some non-standard mode that won't result in sensible
+        pipeline outputs.
+
+    """
     par = common.pc_params()
 
     print('Checking raw image BITPIX value')
@@ -913,12 +945,28 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
     return cat
 
 def get_obs_night(date_string_local, time_string_local):
-    # 'local' for KPNO means MST
-    # date_string_local should be something like 2020/11/08
-    # time_string_local should be something like 04:44:49
+    """
+    Determine observing night from local timestamp.
+
+    Parameters
+    ----------
+        date_string_local : str
+            Should be something like '2020/11/08'.
+        time_string_local : str
+            Should be something like '04:44:49'.
+
+    Returns
+    -------
+        str
+        Observing night string formatted like 'YYYYMMDD'
+
+    Notes
+    -----
+        'local' for KPNO means MST.
+
+    """
 
     # strip spaces from date_string_local and time_string_local
-
     date_string_local = date_string_local.replace(' ', '')
     time_string_local = time_string_local.replace(' ', '')
 
@@ -1005,12 +1053,31 @@ def send_redis(exp, zp_info, sky_info, sci_inst_name='desi'):
     print('Redis data sent...')
 
 def split_table(tab, n_parts):
-    # n_parts is number of equal or nearly equal
-    # parts into which to split tab
+    """
+    Split a table into equal or near-equal sized chunks.
 
-    # basically meant to be a wrapper for
-    # numpy.array_split that applies to
-    # an astropy Table rather than a numpy array
+    Parameters
+    ----------
+        tab : astropy.table.table.Table
+            Table to split into n_parts equal or nearly equal parts.
+        n_parts : int
+            Number of equal or nearly equal parts into which to split the
+            input table. n_parts should be less than or equal to the
+            number of rows in tab...
+
+    Returns
+    -------
+        parts : list
+            List with n_parts elements, with each element being a table.
+
+    Notes
+    -----
+        Basically meant to be a wrapper for numpy.array_split that applies to
+        an astropy Table rather than a numpy array. Quite possibly/likely
+        this was a reinvention of something that could be done easily
+        with existing tools.
+
+    """
 
     nrows = len(tab)
 
