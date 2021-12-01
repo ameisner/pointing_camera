@@ -21,7 +21,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
-            sci_fov_checkplot=False):
+            sci_fov_checkplot=False, check_tcs_motion=False):
     """
     Process one pointing camera image.
 
@@ -73,6 +73,10 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         sci_fov_checkplot : bool, optional
             Set True to limit photometric zeropoint checkplot star sample to
             only those stars that fall within the science instrument's FOV.
+        check_tcs_motion : bool, optional
+            Set True to check header metadata ZPFLAG (which indicates
+            telescope motion during the exposure), and abort the pipeline
+            if this flag is set.
 
     """
 
@@ -91,6 +95,10 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     assert(os.path.exists(fname_in))
 
     exp = PC_exposure(fname_in)
+
+    if check_tcs_motion and exp.did_telescope_move():
+        print('Telescope moved during exposure, abandoning further analysis')
+        return
 
     util.detrend_pc(exp, skip_flatfield=skip_flatfield)
 
@@ -190,6 +198,10 @@ if __name__ == "__main__":
                         action='store_true',
                         help="restrict checkplot to science instrument FOV")
 
+    parser.add_argument('--check_tcs_motion', default=False,
+                        action='store_true',
+                        help="abort reductions based on telescope motion flag")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -206,4 +218,5 @@ if __name__ == "__main__":
             nmp=args.multiproc, max_n_stars=args.max_n_stars,
             pm_corr=args.pm_corr, skip_flatfield=args.skip_flatfield,
             sci_inst_name=args.sci_inst_name,
-            sci_fov_checkplot=args.sci_fov_checkplot)
+            sci_fov_checkplot=args.sci_fov_checkplot,
+            check_tcs_motion=args.check_tcs_motion)

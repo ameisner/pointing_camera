@@ -77,3 +77,25 @@ class PC_exposure:
                                                   self.time_seconds)
 
         self.header['DOMEFLAG'] = (self.has_dome, 'potential dome vignetting')
+
+    def did_telescope_move(self):
+        """
+        Check raw image header metadata for telescope motion flag.
+
+        Returns
+        -------
+            bool
+                Returns True if ZPFLAG is 1, False if ZPFLAG is 0, None if
+                ZPFLAG is not present.
+
+        Notes
+        -----
+            First observing night of El Nino data with ZPFLAG in raw image
+            headers should be 20211201.
+
+        """
+
+        if 'ZPFLAG' in self.header:
+            return bool(self.header['ZPFLAG'])
+        else:
+            return None
