@@ -144,7 +144,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
     return result
 
 def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
-                  sci_fov_checkplot=False):
+                  sci_fov_checkplot=False, max_zp_radius=None):
 
     print('Attempting to calculate zeropoints')
 
@@ -182,5 +182,7 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
     sind = np.argsort(1000*results['quadrant'] + results['aper_ind'] + \
                       0.5*results['science_fov_only'])
     results = results[sind]
+
+    results['max_zp_radius'] = 99999 if max_zp_radius is None else max_zp_radius
 
     return results

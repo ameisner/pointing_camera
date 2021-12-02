@@ -120,7 +120,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
     # so didn't appear to provide any speed-up; could revisit later
     zps = zp.calc_many_zps(cat, exp, one_aper=one_aper,
                            checkplot=(not skip_checkplot),
-                           sci_fov_checkplot=sci_fov_checkplot)
+                           sci_fov_checkplot=sci_fov_checkplot,
+                           max_zp_radius=max_zp_radius)
 
     if write_outputs:
         if not os.path.exists(outdir):
