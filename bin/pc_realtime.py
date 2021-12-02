@@ -75,7 +75,7 @@ def _reduce_new_files(flist_wcs, outdir='.', dont_send_redis=False):
         try:
             pipeline.pc_proc(f_fits, outdir=outdir, dont_write_detrended=True,
                              skip_checkplot=False, nightly_subdir=True, send_redis=(not dont_send_redis),
-                             one_aper=True, nmp=8)
+                             one_aper=True, nmp=8, check_tcs_motion=True)
         except:
             print('PROCESSING FAILURE: ' + f_fits)
 
