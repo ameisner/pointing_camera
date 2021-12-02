@@ -46,6 +46,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
            (cat['centroid_raw_pixel_val'] < 15300) & \
            np.logical_not(cat['centroid_shift_flag']) & \
            np.logical_not(cat['wrong_source_centroid']) & \
+           np.logical_not(cat['radius_too_large']) & \
            np.isfinite(cat['PHOT_BP_MEAN_MAG']) & \
            np.isfinite(cat['PHOT_RP_MEAN_MAG']) & \
            np.isfinite(cat['PHOT_G_MEAN_MAG'])

@@ -21,7 +21,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
-            sci_fov_checkplot=False, check_tcs_motion=False):
+            sci_fov_checkplot=False, check_tcs_motion=False,
+            max_zp_radius=None):
     """
     Process one pointing camera image.
 
@@ -76,7 +77,14 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         check_tcs_motion : bool, optional
             Set True to check header metadata ZPFLAG (which indicates
             telescope motion during the exposure), and abort the pipeline
-            if this flag is set.
+            if this flag is set. TCS = Telescope Control System.
+        max_zp_radius : int, optional
+            Default is None. If set, this is the maximum radius in pixels
+            relative to the detector center at which a star will be used
+            in computing zeropoints. Currently, the pipeline still analyzes
+            stars beyond this radius. A future optimization could be
+            entirely ignoring (no centroiding or photometry) stars
+            beyond this radius, in order to decrease runtime.
 
     """
 
@@ -106,7 +114,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
     cat = util.pc_phot(exp, one_aper=one_aper, bg_sigclip=bg_sigclip,
                        nmp=nmp, max_n_stars=max_n_stars,
-                       pm_corr=pm_corr)
+                       pm_corr=pm_corr, max_zp_radius=max_zp_radius)
 
     # intentionally don't pass nmp to zps.calc_many_zp, since doing
     # so didn't appear to provide any speed-up; could revisit later
@@ -202,6 +210,9 @@ if __name__ == "__main__":
                         action='store_true',
                         help="abort reductions based on telescope motion flag")
 
+    parser.add_argument('--max_zp_radius', default=None, type=int,
+                        help="maximum radius in pixels for zeropoint stars")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -219,4 +230,5 @@ if __name__ == "__main__":
             pm_corr=args.pm_corr, skip_flatfield=args.skip_flatfield,
             sci_inst_name=args.sci_inst_name,
             sci_fov_checkplot=args.sci_fov_checkplot,
-            check_tcs_motion=args.check_tcs_motion)
+            check_tcs_motion=args.check_tcs_motion,
+            max_zp_radius=args.max_zp_radius)

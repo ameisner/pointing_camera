@@ -873,7 +873,7 @@ def recentroid_and_photometer(im, cat, one_aper=False, bg_sigclip=False):
     return cat
 
 def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
-            pm_corr=False):
+            pm_corr=False, max_zp_radius=None):
     # main photometry driver; exp is a PC_exposure object
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
@@ -936,6 +936,13 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
 
     cat['in_science_fov'] = \
         (cat['radius_pix'] < par['science_radius_pix']).astype('int16')
+
+    if max_zp_radius is None:
+        cat['radius_too_large'] = False
+    else:
+        cat['radius_too_large'] = \
+        (cat['radius_pix'] > max_zp_radius)
+    cat['radius_too_large'] = cat['radius_too_large'].astype('int16')
 
     if exp.has_dome is not None:
         cat['has_dome'] = exp.has_dome.astype('int16')
