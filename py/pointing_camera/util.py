@@ -210,7 +210,24 @@ def _check_bitpix(h_im):
     assert(h_im['BITPIX'] == par['bitpix'])
 
 def quad_pix_limits(quad):
-    # q is an integer quadrant number, one of [1, 2, 3, 4]
+    """
+    Get bounding pixel indices for each raw image quadrant.
+
+    Parameters
+    ----------
+        quad : int
+            Integer quadrant number, using the standard convention
+            (when the image is rendered as in DS9 and IDL/ATV. Should
+            be one of [1, 2, 3, 4]. Not intended to work for multi-element
+            inputs.
+
+    Returns
+    -------
+        result : dict
+            Dictionary containing minimum and maximum pixel indices
+            along each axis.
+
+    """
 
     assert(quad in [1, 2, 3, 4])
 
@@ -238,6 +255,26 @@ def quad_pix_limits(quad):
     return result
 
 def get_quadrant(im, q):
+    """
+    Extract a quadrant from a full-sized pointing camera image.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D numpy array. Should have the same dimensions as a raw
+            pointing camera image.
+        q : int
+            Integer quadrant number, using the standard convention
+            (when the image is rendered as in DS9 and IDL/ATV. Should
+            be one of [1, 2, 3, 4]. Not intended to work for multi-element
+            inputs.
+
+    Returns
+    -------
+        quad : numpy.ndarray
+            Extracted image quadrant.
+
+    """
     assert(q in [1, 2, 3, 4])
 
     check_image_dimensions(im)
@@ -251,8 +288,26 @@ def get_quadrant(im, q):
     return quad
 
 def quadrant_from_xy(x, y):
-    # works for array-valued x, y
+    """
+    Convert from image pixel coordinates to quadrant number.
 
+    Parameters
+    ----------
+        x : numpy.ndarray
+            x pixel coordinate values of interest (0-indexed).
+            Should have the same dimensions as y.
+
+        y : numpy.ndarray
+            y pixel coordinate values of interest (0-indexed).
+            Should have the same dimensions as x.
+
+    Returns
+    -------
+        quadrant : numpy.ndarray
+            Integer image quadrant values corresponding to the input
+            (x, y) pairs.
+
+    """
     par = common.pc_params()
 
     half_x = par['nx']/2 - 0.5
@@ -271,6 +326,26 @@ def quadrant_from_xy(x, y):
     return quadrant
 
 def min_edge_dist_pix(x, y):
+    """
+    Compute minimum distance to any image edge.
+
+    Parameters
+    ----------
+        x : numpy.ndarray
+            x pixel coordinate values.
+            Should have the same dimensions as y.
+        y : numpy.ndarray
+            y pixel coordinate values of interest (0-indexed).
+            Should have the same dimensions as x.
+
+    Returns
+    -------
+        min_edge_dist : numpy.ndarray
+            Minimum distance to any image edge. 'Edge'
+            is taken to be the outer edge of a bounding pixel,
+            for instance on the left edge x would be -0.5.
+
+    """
     # minimum distance to any image edge
     # works for array-valued x, y
 
@@ -353,6 +428,23 @@ def subtract_master_dark(im, time_seconds):
     return im
 
 def subtract_quad_offs(im):
+    """
+    Subtract a scalar offset per image quadrant.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D image array that should have the standard dimensions
+            of a raw pointing camera image.
+
+    Returns
+    -------
+        im : numpy.ndarray
+            Version of the input image with per-quadrant
+            scalar offsets subtracted. Output is floating point
+            even if input was integer data type.
+
+    """
     par = common.pc_params()
 
     # just in case this hasn't already been taken care of...
@@ -429,7 +521,23 @@ def apply_flatfield(im):
     return im
 
 def badpix_interp(im):
-    # interpolate over static badpixels
+    """
+    Interpolate over static bad pixels.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D array holding pointing camera image. Should have the
+            usual dimensions of a raw pointing camera image. Should
+            be floating point data type.
+
+    Returns
+    -------
+        result : numpy.ndarray
+            2D array holding modified version of input image, where
+            pixels in the static bad pixel mask have been interpolated over
+
+    """
 
     mask = io.load_static_badpix()
 
