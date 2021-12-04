@@ -183,6 +183,8 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
                       0.5*results['science_fov_only'])
     results = results[sind]
 
+    # note that this could be confusing for rows that *further* restrict
+    # to stars within the science FOV when computing the zeropoint
     results['max_zp_radius'] = 99999 if max_zp_radius is None else max_zp_radius
 
     return results

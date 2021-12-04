@@ -535,7 +535,7 @@ def badpix_interp(im):
     -------
         result : numpy.ndarray
             2D array holding modified version of input image, where
-            pixels in the static bad pixel mask have been interpolated over
+            pixels in the static bad pixel mask have been interpolated over.
 
     """
 
@@ -546,7 +546,18 @@ def badpix_interp(im):
     return result
 
 def detrend_pc(exp, skip_flatfield=False):
-    # exp is a PC_exposure object
+    """
+    Driver for detrending a raw pointing camera image.
+
+    Parameters
+    ----------
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object.
+
+        skip_flatfield : bool, optional
+            Set True to skip the flat field application step.
+
+    """
 
     print('Attempting to detrend the raw pointing camera image')
 
@@ -577,11 +588,24 @@ def detrend_pc(exp, skip_flatfield=False):
     print('Finished detrending the raw pointing camera image')
 
 def sky_metrics(im, mask=None):
-    # im is a 2D numpy array, intended to be either a full-frame
-    # image or one quadrant of a full-frame image
+    """
+    Compute sky background pixel value statistics.
 
-    # mask should be a boolean image array with the same
-    # dimensions as im
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D numpy array, intended to be either a full-frame image or one
+            quadrant of a full-frame image.
+        mask : numpy.ndarray
+            A 2D boolean image array with the same dimensions as im.
+
+    Returns
+    -------
+        result : dict
+            Various sky background value statistics such as robust standard
+            deviation, sigma clipped mean, and median.
+
+    """
 
     sz = im.shape
     assert(len(sz) == 2)
@@ -630,6 +654,21 @@ def sky_metrics(im, mask=None):
     return result
 
 def sky_summary_table(exp):
+    """
+    Driver for sky analysis and metrics.
+
+    Parameters
+    ----------
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object.
+
+    Returns
+    -------
+        t : astropy.table.table.Table
+            Table of sky metrics/metadata. Should have one row with many
+            columns.
+
+    """
 
     print('Computing sky background statistics')
 
@@ -687,14 +726,38 @@ def sky_summary_table(exp):
     return t
 
 def _validate_ctype(wcs):
-    # wcs should be an astropy WCS object
+    """
+    Check that ctype values in WCS are as expected.
+
+    Parameters
+    ----------
+        wcs : astropy.wcs.wcs.WCS
+            An astropy WCS object.
+
+    """
 
     valid_ctypes = ['RA---TAN', 'DEC--TAN', 'RA---TAN-SIP', 'DEC--TAN-SIP']
     for ctype in wcs.wcs.ctype:
         assert(ctype in valid_ctypes)
 
 def max_gaia_mag(time_seconds):
-    # trying to make this work for both array and scalar inputs
+    """
+    Maximum Gaia magnitude to retain as a function of exposure time.
+
+    Parameters
+    ----------
+        time_seconds : float
+            Exposure time in units of seconds. Should work for both array
+            and scalar inputs.
+
+    Returns
+    -------
+        val : float
+            The maximum Gaia magnitude to retain given the exposure time. If
+            time_seconds is an array, then the return value should also be an
+            array with the same dimensions.
+
+    """
 
     fac = 1.21
 
@@ -705,8 +768,23 @@ def max_gaia_mag(time_seconds):
     return val
 
 def xy_subsamp_grid():
-    # the values hardcoded here are going to give me problems
-    # when trying to run on data with different dimensions e.g., la Nina
+    """
+    Subsampled grid of pixel coordinate locations spanning the full image extent.
+
+    Returns
+    -------
+        xgrid : numpy.ndarray
+            2D array of x pixel coordinate values. Same shape as ygrid.
+        ygrid : numpy.ndarray
+            2D array of y pixel coordinate values. Same shape as xgrid.
+
+    Notes
+    -----
+        The values hardcoded here are going to give me problems when trying
+        to run on data with different dimensions e.g., la Nina. Should
+        generalize this function in the future.
+
+    """
 
     x = np.arange(104)*32
     y = np.arange(104)*24
@@ -715,9 +793,60 @@ def xy_subsamp_grid():
 
     return xgrid, ygrid
 
-
 def pc_gaia_cat(exp, mag_thresh=None, edge_pad_pix=0, nmp=None,
                 max_n_stars=3000, pm_corr=False):
+    """
+    Assemble Gaia catalog relevant to a particular pointing camera exposure.
+
+    Parameters
+    ----------
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object.
+
+        mag_thresh : float, optional
+            Maximum Gaia G mag for which to retain Gaia stars. Default value
+            of None means that no Gaia minimum brightness threshold will be applied.
+
+        edge_pad_pix : float, optional
+            Minimum distance from image boundaries to enforce when deciding whether
+            to retain each Gaia star. Default of 0 simply means that stars within the
+            boundaries are retained and those outside of the image boundaries are not
+            retained.
+
+        nmp : int, optional
+            Number of processes to use for multiprocessing. Should be an integer
+            greater than 1 but less than the number of CPU's. Default of None means
+            that read-in of the Gaia chunk files will happen in serial.
+
+        max_n_stars : int, optional
+            Maximum number of Gaia stars to retain. The idea is to avoid running
+            into a situation where the pipeline takes forever trying to photometer
+            a huge number of stars in dense fields. If the total number of stars
+            exceeds max_n_stars, then the brightest max_n_stars are retained.
+
+        pm_corr : bool, optional
+            If set True, apply proper motion corrections to Gaia star positions,
+            so that their positions match the epoch of the pointing camera
+            exposure. By default this is False, on the assumption that only a
+            tiny fraction of stars will have high enough proper motions for this
+            to matter (El Nino, for instance, has ~8.6" pixels), especially given
+            that this pipeline does empirical centroid refinement for all stars.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            Gaia catalog for stars relevant to the pointing camera exposure.
+
+    Notes
+    -----
+        Would be good to add a check that the number of requested multiprocessing
+        processes does not exceed the number of CPU's.
+
+        Upgrade Gaia catalogs to eDR3/DR[3+] at some point? This has to do
+        with what files are on disk though, and wouldn't affect the code in
+        this function at all.
+
+    """
 
     print('Reading Gaia DR2 catalogs...')
 
@@ -742,6 +871,7 @@ def pc_gaia_cat(exp, mag_thresh=None, edge_pad_pix=0, nmp=None,
 
     par = common.pc_params()
 
+    # should switch to calling min_edge_dist utility here?
     keep  = (x_gaia_guess > edge_pad_pix) & (y_gaia_guess > edge_pad_pix) & (x_gaia_guess < (par['nx'] - 1 - edge_pad_pix)) & (y_gaia_guess < (par['ny'] - 1 - edge_pad_pix))
 
     assert(np.sum(keep) > 0)
@@ -764,6 +894,9 @@ def pc_gaia_cat(exp, mag_thresh=None, edge_pad_pix=0, nmp=None,
         # selected max_n_stars evenly across quadrants
         # (could imagine a pathological case with e.g., a
         # globular cluster in the FOV)
+        # might also be worth considering throwing out stars that
+        # are excessively bright, though those are probably always
+        # a very small fraction of the retained max_n_stars (?)
         print('Restricting to the brightest ' + str(max_n_stars) + \
               ' of ' + str(len(cat)) + ' stars')
         sind = np.argsort(cat['PHOT_G_MEAN_MAG'])
@@ -772,6 +905,24 @@ def pc_gaia_cat(exp, mag_thresh=None, edge_pad_pix=0, nmp=None,
     return cat
 
 def pc_recentroid(im, cat):
+    """
+    Perform star recentroiding.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            Pointing camera image. Should be the detrended image.
+        cat : astropy.table.table.Table
+            Table of stars to recentroid. Columns 'x_gaia_guess',
+            'y_gaia_guess' provide the starting locations adopted
+            for each star.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            A modified version of the input catalog with more columns.
+
+    """
     par = common.pc_params()
 
     im = im.astype(float)
