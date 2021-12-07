@@ -58,7 +58,6 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
             metadata/metrics.
 
     """
-    # quadrant = 0 means whole image (all quadrants combined)
 
     print('Computing zeropoint for quadrant : ', quadrant, \
           ' , aper ', aper_ind, ' , science FOV only = ', science_fov_only)
@@ -186,6 +185,7 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
                   sci_fov_checkplot=False, max_zp_radius=None):
     """
+    Calculate multiple photometric zeropoint measurements.
 
     Parameters
     ----------
