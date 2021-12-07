@@ -18,6 +18,46 @@ import pointing_camera.util as util
 def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
             one_aper=False, checkplot=True, science_fov_only=False,
             sci_fov_checkplot=False):
+    """
+    Calculate a zeropoint value for a particular aperture size.
+
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Source catalog with refined centroids and aperture photometry.
+        aper_ind : int
+            Index of aperture to use within array of apertures photometered
+            per object.
+        time_seconds : float
+            Exposure time in seconds. Zeropoints computed correspond to
+            the magnitude of a source with flux of 1 ADU/second, so
+            the exposure time is needed...
+        fname_im : str
+            File name of the raw pointing camera image. This gets packaged
+            into the zeropoints table and also is used for constructing the
+            plot title.
+        quadrant : int, optional
+            Should be one of 0, 1, 2, 3, 4 where 0 means the entire image
+            (all four quadrants combined).
+        one_aper : bool, optional
+            If True, aperture photometry only exists for the 'standard' aperture,
+            rather than the whole series of apertures.
+        checkplot : bool, optional
+            Create zeropoint scatterplot checkplot. Set False to skip checkplot.
+        science_fov_only : bool, optional
+            If True, restrict zeropoint computation to only those stars that
+            fall within the science instrument field of view footprint.
+        sci_fov_checkplot : bool, optional
+             If True, restrict the sample of stars plotted in the checkplot to
+             only the science field of view footprint.
+
+    Returns
+    -------
+        result : astropy.table.table.Table
+            Single-row table of zeropoints measurements and associated
+            metadata/metrics.
+
+    """
     # quadrant = 0 means whole image (all quadrants combined)
 
     print('Computing zeropoint for quadrant : ', quadrant, \
@@ -145,6 +185,40 @@ def calc_zp(_cat, aper_ind, time_seconds, fname_im, quadrant=0,
 
 def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
                   sci_fov_checkplot=False, max_zp_radius=None):
+    """
+
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Source catalog with refined centroids and aperture photometry.
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object.
+        one_aper : bool, optional
+            If True, aperture photometry only exists for the 'standard' aperture,
+            rather than the whole series of apertures.
+        checkplot : bool, optional
+            Create zeropoint scatterplot checkplot. Set False to skip checkplot.
+        nmp : int, optional
+            Number of processes to use for multiprocessing. Should be an integer
+            greater than 1 but less than or equal to the number of CPU's. Default
+            of None means no multiprocessing.
+        sci_fov_checkplot : bool, optional
+             If True, restrict the sample of stars plotted in the checkplot to
+             only the science field of view footprint.
+        max_zp_radius : float, optional
+            Maximum radius in pixels from center of image for inclusion of
+            stars in zeropoint determination. The idea is that beyond some
+            radius from the image center, the PSF may degrade significantly
+            such that we don't want to take stars far from the image center
+            into account when computing the zeropoints. Default of None
+            means that no such maximum image center distance cut is made.
+
+    Returns
+    -------
+        results : astropy.table.table.Table
+            Table of zeropoints measurements and associated metadata/metrics.
+
+    """
 
     print('Attempting to calculate zeropoints')
 

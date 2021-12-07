@@ -58,7 +58,6 @@ def load_wcs(fname_wcs):
     """
     Load astrometry.net WCS file.
 
-
     Parameters
     ----------
         fname_wcs : str
@@ -203,6 +202,7 @@ def _check_bitpix(h_im):
         pipeline outputs.
 
     """
+
     par = common.pc_params()
 
     print('Checking raw image BITPIX value')
@@ -275,6 +275,7 @@ def get_quadrant(im, q):
             Extracted image quadrant.
 
     """
+
     assert(q in [1, 2, 3, 4])
 
     check_image_dimensions(im)
@@ -308,6 +309,7 @@ def quadrant_from_xy(x, y):
             (x, y) pairs.
 
     """
+
     par = common.pc_params()
 
     half_x = par['nx']/2 - 0.5
@@ -346,8 +348,6 @@ def min_edge_dist_pix(x, y):
             for instance on the left edge x would be -0.5.
 
     """
-    # minimum distance to any image edge
-    # works for array-valued x, y
 
     min_edge_dist = 20000
 
@@ -445,6 +445,7 @@ def subtract_quad_offs(im):
             even if input was integer data type.
 
     """
+
     par = common.pc_params()
 
     # just in case this hasn't already been taken care of...
@@ -923,6 +924,7 @@ def pc_recentroid(im, cat):
             A modified version of the input catalog with more columns.
 
     """
+
     par = common.pc_params()
 
     im = im.astype(float)
@@ -972,6 +974,28 @@ def pc_recentroid(im, cat):
     return cat
 
 def flag_wrong_centroids(cat, full_cat):
+    """
+    Flag cases of a centroid wandering off to an entirely different star.
+
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Table with columns including xcentroid, ycentroid, SOURCE_ID. Can be a
+            subset of the rows for the entire pointing camera exposure's
+            catalog, with the idea being that partial lists can be run
+            in parallel to reduce run time.
+        full_cat : astropy.table.table.Table
+            Table with columns including x_gaia_guess, y_gaia_guess, SOURCE_ID.
+            Needs to be the full star catalog for this pointing camera exposure.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            Input catalog cat but with an added column called wrong_source_centroid,
+            which has a value of 1 (centroid has wandered too far) or 0.
+
+    """
+
     wrong_source_centroid = np.zeros(len(cat), dtype=bool)
 
     for i in range(len(cat)):
@@ -984,8 +1008,27 @@ def flag_wrong_centroids(cat, full_cat):
     return cat
 
 def _get_area_from_ap(ap):
-    # this is to try and work around the photutils API change
-    # between versions 0.6 and 0.7
+    """
+    Get the area of a photutils aperture in pixels.
+
+    Parameters
+    ----------
+        ap : photutils.aperture.circle.CircularAperture
+            photutils aperture object. Should be a single object rather
+            than a list of them.
+
+    Returns
+    -------
+        area : float
+            Area of aperture in pixels.
+
+    Notes
+    -----
+        This is to try and work around the photutils API change
+        between versions 0.6 and 0.7.
+
+    """
+
     if (photutils.__version__.find('0.7') != -1) or (photutils.__version__.find('1.0') != -1) or (photutils.__version__.find('1.2') != -1):
         area = ap.area # 0.7
     else:
@@ -994,6 +1037,33 @@ def _get_area_from_ap(ap):
     return area
 
 def pc_aper_phot(im, cat, one_aper=False, bg_sigclip=False):
+    """
+    Driver for aperture photometry.
+
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D array representing the detrended image.
+        cat : astropy.table.table.Table
+            Source catalog, with each row representing a Gaia star.
+        one_aper : bool, optional
+            If True, only compute aperture photometry in the 'standard' aperture,
+            rather than a series of apertures. This is meant to be a way
+            of reducing run time.
+        bg_sigclip : bool, optional
+            If True, use sigma clipping when computing background level median
+            value in sky annulus. False by default for speed, as the
+            sigma_clipped_stats call is slow. May be worth investigating
+            other sigma clipped median utilities to see if those are
+            somehow faster.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            Version of the input catalog with added columns pertaining to
+            the aperture photometry results/outputs.
+
+    """
 
     im = im.astype(float)
 
@@ -1073,6 +1143,17 @@ def get_g_prime(G, BP_RP):
     return g_prime
 
 def source_raw_pixel_metrics(cat, raw):
+    """
+    Tabulate raw pixel values at central locations of sources.
+
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Source catalog.
+        raw : numpy.ndarray
+            Raw pointing camera image.
+
+    """
 
     par = common.pc_params()
 
@@ -1091,14 +1172,27 @@ def source_raw_pixel_metrics(cat, raw):
     cat['centroid_pixel_saturated'] = centroid_pixel_saturated
 
 def gaia_pm_corr(cat, pc_mjd):
-    # leave Gaia (RA, DEC) unchanged in cases lacking full
-    # five-parameter astrometric solution
-    # when Gaia (PMRA, PMDEC) are available, correct
-    # Gaia (RA, DEC) to pc_mjd epoch
-    # don't do anything about parallax given how large the
-    # the pointing camera pixels are...
+    """
+    Compute proper motion corrected Gaia coordinates.
 
-    # 'cat' gets modified
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Source catalog.
+
+        pc_mjd : float
+            MJD of pointing camera exposure epoch.
+
+    Notes
+    -----
+        Leave Gaia (RA, DEC) unchanged in cases lacking full
+        five-parameter astrometric solution.
+        When Gaia (PMRA, PMDEC) are available, correct
+        Gaia (RA, DEC) to pc_mjd epoch.
+        Don't do anything about parallax given how large the
+        pointing camera pixels are. Input 'cat' gets modified.
+
+    """
 
     print('Correcting Gaia positions for proper motion when possible')
 
@@ -1118,12 +1212,30 @@ def gaia_pm_corr(cat, pc_mjd):
     cat['DEC'][full_solution] = dec_corr[full_solution]
 
 def recentroid_and_photometer(im, cat, one_aper=False, bg_sigclip=False):
+    """
+    Driver for running recentroiding followed by aperture photometry.
 
-    # wrapper that sequentially does recentroiding
-    # and aperture photometry by calling pc_recentroid
-    # and then pc_aper_phot
-    # expect that im would typically be the full detrended pointing
-    #    camera image
+    Parameters
+    ----------
+        im : numpy.ndarray
+            2D array with the detrended pointing camera image.
+        cat : astropy.table.table.Table
+            Source catalog.
+        one_aper : bool, optional
+            If True, only compute aperture photometry in the 'standard' aperture,
+            rather than a series of apertures. This is meant to be a way
+            of reducing run time.
+        bg_sigclip : bool, optional
+            If True, use sigma clipping when computing background level median
+            value in sky annulus. False by default for speed, as the
+            sigma_clipped_stats call is slow.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            Modified version of input table cat.
+
+    """
 
     cat = pc_recentroid(im, cat)
 
@@ -1133,7 +1245,51 @@ def recentroid_and_photometer(im, cat, one_aper=False, bg_sigclip=False):
 
 def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False, max_zp_radius=None):
-    # main photometry driver; exp is a PC_exposure object
+    """
+    Main photometry driver.
+
+    Parameters
+    ----------
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object.
+        one_aper : bool, optional
+            If True, only compute aperture photometry in the 'standard' aperture,
+            rather than a series of apertures. This is meant to be a way
+            of reducing run time.
+        bg_sigclip : bool, optional
+            If True, use sigma clipping when computing background level median
+            value in sky annulus. False by default for speed, as the
+            sigma_clipped_stats call is slow.
+        nmp : int, optional
+            Number of processes to use for multiprocessing. Should be an integer
+            greater than 1 but less than or equal to the number of CPU's. Default
+            of None means no multiprocessing.
+        max_n_stars : int, optional
+            Maximum number of Gaia stars to retain. The idea is to avoid running
+            into a situation where the pipeline takes forever trying to photometer
+            a huge number of stars in dense fields. If the total number of stars
+            exceeds max_n_stars, then the brightest max_n_stars are retained.
+        pm_corr : bool, optional
+            If set True, apply proper motion corrections to Gaia star positions,
+            so that their positions match the epoch of the pointing camera
+            exposure. By default this is False, on the assumption that only a
+            tiny fraction of stars will have high enough proper motions for this
+            to matter (El Nino, for instance, has ~8.6" pixels), especially given
+            that this pipeline does empirical centroid refinement for all stars.
+        max_zp_radius : float, optional
+            Maximum radius in pixels from center of image for inclusion of
+            stars in zeropoint determination. The idea is that beyond some
+            radius from the image center, the PSF may degrade significantly
+            such that we don't want to take stars far from the image center
+            into account when computing the zeropoints. Default of None
+            means that no such maximum image center distance cut is made.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            Source catalog with refined centroids and aperture photometry.
+
+    """
 
     mag_thresh = max_gaia_mag(exp.time_seconds)
 
@@ -1259,10 +1415,30 @@ def get_obs_night(date_string_local, time_string_local):
         return date_string_yesterday
 
 def send_redis(exp, zp_info, sky_info, sci_inst_name='desi'):
+    """
+    Send pointing camera photometry telemetry to redis.
 
-    # zp_info is a table with five rows:
-    #     quadrants 0-4 inclusive with zero representing whole image
-    # sky_info is one table row
+    Parameters
+    ----------
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object.
+        zp_info : astropy.table.table.Table
+            A table with five rows of zeropoints information (quadrants 0-4
+            inclusive with zero representing whole image).
+        sky_info : astropy.table.table.Table
+            A table with one row of sky background level information.
+        sci_inst_name : str, optional
+            Science instrument name. Meant to allow this to be configurable.
+            Propagates into some of the field names that get sent to Redis.
+
+    Returns
+    -------
+        This is fairly specific to the Mayall telescope.
+        Should only be run within the appropriate computing
+        environment where the relevant Redis connection can
+        be established.
+
+    """
 
     import redis
 
