@@ -57,6 +57,26 @@ def check_tracking():
     return bool(tracking)
 
 def _reduce_new_files(flist_wcs, outdir='.', dont_send_redis=False):
+    """
+    Run the pointing camera reduction pipeline on a list of new raw files.
+
+    Parameters
+    ----------
+        flist_wcs : list
+            List of full paths of the raw .wcs filenames for which the
+            pointing camera reduction pipeline should be run.
+        outdir : str, optional
+            Full path of directory in which to write pointing camera
+            reduction outputs.
+        dont_send_redis : bool, optional
+            If set True, skip sending results/telemetry to Redis.
+
+    Notes
+    -----
+        Should work on removing the hardcoding of various parameters in
+        the call to pc_proc().
+
+    """
 
     for f_wcs in flist_wcs:
         # check that the corresponding .fits raw image exists
@@ -80,7 +100,24 @@ def _reduce_new_files(flist_wcs, outdir='.', dont_send_redis=False):
             print('PROCESSING FAILURE: ' + f_fits)
 
 def _proc_new_files(data_dir=default_data_dir, outdir='.', dont_send_redis=False, do_check_tracking=False):
+    """
+    Driver for processing new raw pointing camera files.
 
+    Parameters
+    ----------
+        data_dir : str, optional
+            Full path of data directory to watch for new files.
+        outdir : str, optional
+            Full path of directory in which to write pointing camera
+            reduction outputs.
+        dont_send_redis : bool, optional
+            If set True, skip sending results/telemetry to Redis.
+        do_check_tracking : bool, optional
+            If set True, check the current status of whether the telescope
+            is tracking and skip running pipeline if found to be not
+            tracking.
+
+    """
     print('Checking for new .wcs files...')
 
     assert(os.path.exists(data_dir))
@@ -115,6 +152,26 @@ def _proc_new_files(data_dir=default_data_dir, outdir='.', dont_send_redis=False
 
 def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.',
            dont_send_redis=False, do_check_tracking=False):
+    """
+    Poll input raw data directory for new files.
+
+    Parameters
+    ----------
+        wait_seconds : int, optional
+            Polling interval.
+        data_dir : str, optional
+            Full path of data directory to watch for new files.
+        outdir : str, optional
+            Full path of directory in which to write pointing camera
+            reduction outputs.
+        dont_send_redis : bool, optional
+            If set True, skip sending results/telemetry to Redis.
+        do_check_tracking : bool, optional
+            If set True, check the current status of whether the telescope
+            is tracking and skip running pipeline if found to be not
+            tracking.
+
+    """
 
     pre_cache_all_calibs()
 
@@ -125,6 +182,17 @@ def _watch(wait_seconds=5, data_dir=default_data_dir, outdir='.',
                         do_check_tracking=do_check_tracking)
 
 def _do_veto(fname):
+    """
+    Mark a set of files as already processed.
+
+    Parameters
+    ----------
+        fname : str
+            Full name of ASCII file containing the list of
+            pointing camera file names to mark as already processed.
+
+    """
+
     assert(os.path.exists(fname))
 
     global files_processed
@@ -141,9 +209,6 @@ if __name__ == "__main__":
     descr = 'process new pointing camera astrometry mode images in real time'
 
     parser = argparse.ArgumentParser(description=descr)
-
-    parser.add_argument('--start_night', default=None, type=str,
-                        help="observing night to start with")
 
     parser.add_argument('--data_dir', default=default_data_dir, type=str,
                         help="directory with raw images and WCS files")
