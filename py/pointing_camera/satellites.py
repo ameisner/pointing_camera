@@ -1,3 +1,10 @@
+"""
+pointing_camera.satellites
+==========================
+
+Satellite streak detection.
+"""
+
 from astride import Streak
 import time
 import pickle

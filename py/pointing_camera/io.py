@@ -12,6 +12,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 from functools import lru_cache
+import pickle
 
 def write_image_level_outputs(exp, outdir):
     """
@@ -236,4 +237,52 @@ def save_zp_checkplot(exp, outdir):
     assert(not os.path.exists(outname_tmp))
 
     plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
+    os.rename(outname_tmp, outname)
+
+def write_streaks(exp, streaks, outdir):
+    """
+    Write a file with a summary of detected streaks.
+
+    Parameters
+    ----------
+        exp : exposure.PC_exposure
+            Pointing camera exposure object.
+        streaks : list
+            List of streaks, each of which is a dictionary with data
+            defining one detected streak.
+        outdir : str
+            Full path of output directory.
+
+    Notes
+    -----
+        If input streaks variable is an empty list (no streaks detected) then
+        no output is written.
+
+        streaks list contains numpy arrays as dictionary values, which
+        makes it not possible to dump to JSON, hence the pickle output file
+        type.
+
+    """
+
+    if not len(streaks):
+        print('Streaks file not written because no streaks were cataloged.')
+        return
+
+    assert(os.path.exists(outdir))
+
+    outname = (os.path.split(exp.fname_im))[-1]
+
+    outname = outname.replace('.fits', '-streaks.pkl')
+
+    outname = os.path.join(outdir, outname)
+
+    outname_tmp = outname + '.tmp'
+
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
+
+    print('Writing satellite streaks...')
+
+    pickle.dump(streaks, open(outname_tmp, "wb" ) )
+
     os.rename(outname_tmp, outname)

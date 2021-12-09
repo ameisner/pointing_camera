@@ -16,13 +16,14 @@ import pointing_camera.util as util
 import pointing_camera.io as io
 import pointing_camera.zp as zp
 import pointing_camera.common as common
+import satellites
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
             sci_fov_checkplot=False, check_tcs_motion=False,
-            max_zp_radius=None):
+            max_zp_radius=None, detect_streaks=False):
     """
     Process one pointing camera image.
 
@@ -85,6 +86,13 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             stars beyond this radius. A future optimization could be
             entirely ignoring (no centroiding or photometry) stars
             beyond this radius, in order to decrease runtime.
+        detect_streaks : bool, optional
+            If True, run satellite streak detection. This will increase
+            the total run time by at least a couple of seconds (haven't
+            checked if there are situations where the satellite streak
+            detection takes an excessively long time, but there might be).
+            At present, running streak detection will also require the
+            astride streak detection package to be installed.
 
     """
 
@@ -123,6 +131,10 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
                            sci_fov_checkplot=sci_fov_checkplot,
                            max_zp_radius=max_zp_radius)
 
+    if detect_streaks:
+    # probably want to put a timeout handler around this eventually
+        streaks = satellites.detect_streaks(exp)
+
     if write_outputs:
         if not os.path.exists(outdir):
             os.mkdir(outdir)
@@ -144,6 +156,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
         if not skip_checkplot:
             io.save_zp_checkplot(exp, outdir)
+
+        if detect_streaks:
+            io.write_streaks(exp, streaks, outdir)
 
         if send_redis:
             print('Attempting to send results to redis...')
@@ -214,6 +229,10 @@ if __name__ == "__main__":
     parser.add_argument('--max_zp_radius', default=None, type=int,
                         help="maximum radius in pixels for zeropoint stars")
 
+    parser.add_argument('--detect_streaks', default=False,
+                        action='store_true',
+                        help="run satellite streak detection/cataloging")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -232,4 +251,5 @@ if __name__ == "__main__":
             sci_inst_name=args.sci_inst_name,
             sci_fov_checkplot=args.sci_fov_checkplot,
             check_tcs_motion=args.check_tcs_motion,
-            max_zp_radius=args.max_zp_radius)
+            max_zp_radius=args.max_zp_radius,
+            detect_streaks=args.detect_streaks)

@@ -1,6 +1,6 @@
 """
 pointing_camera.util
-==================
+====================
 
 A collection of pointing camera related utility functions.
 """
