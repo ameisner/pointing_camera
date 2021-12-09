@@ -6,6 +6,8 @@ A class representing a pointing camera exposure.
 """
 
 import pointing_camera.util as util
+import os
+import astropy.io.fits as fits
 
 class PC_exposure:
     """Object encapsulating the contents of a single pointing camera exposure"""
@@ -99,3 +101,49 @@ class PC_exposure:
             return bool(self.header['ZPFLAG'])
         else:
             return None
+
+    def _tmp_detrended_filename(self):
+        """
+        Get name of temporary detrended file.
+
+        Returns
+        -------
+            outname : str
+                Full temporary file name.
+
+        """
+
+        outname = os.path.split(self.fname_im)[-1].replace('.fits',
+            '-detrended.fits.tmp')
+
+        outname = os.path.join('/tmp', outname)
+
+        return outname
+
+    def _write_tmp_detrended(self):
+        """
+        Write detrended image and header to /tmp as a FITS image file.
+
+        Notes
+        -----
+            This is a workaround to accommodate the astride Streak
+            constructor.
+
+        """
+
+        outname = self._tmp_detrended_filename()
+
+        hdu = fits.PrimaryHDU(self.detrended, self.header)
+
+        hdu.writeto(outname)
+
+    def _del_tmp_detrended(self):
+        """
+        Delete temporary detrended image FITS file.
+
+        """
+
+        fname = self._tmp_detrended_filename()
+
+        if os.path.exists(fname):
+            os.remove(fname)
