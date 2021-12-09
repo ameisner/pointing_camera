@@ -205,6 +205,32 @@ def load_master_flat():
 
     return flat
 
+@lru_cache(maxsize=1)
+def load_dome_clf():
+    """
+    Load dome vignetting machine learning classifier.
+
+    Returns
+    -------
+        clf : sklearn.svm._classes.SVC
+            Machine learning classifier for dome vignetting. Exact type
+            of classifier may evolve over time based on further
+            optimization/experimentation.
+
+    """
+
+    par = common.pc_params()
+
+    fname = os.path.join(os.environ[par['meta_env_var']],
+                         par['fname_clf'])
+
+    assert(os.path.exists(fname))
+
+    print('READING DOME VIGNETTING ML CLASSIFIER : ' + fname)
+    clf = pickle.load(open(fname,"rb"))
+
+    return clf
+
 def save_zp_checkplot(exp, outdir):
     """
     Save a file with the zeropoint check plot.

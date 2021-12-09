@@ -50,6 +50,7 @@ def pc_params():
            'science_radius_pix': 665.49217,
            'zp_adu_per_s': 17.58,
            'dome_thresh_adu_per_s': 0.5,
-           'gaia_nside': 32}
+           'gaia_nside': 32,
+           'fname_clf': 'svc_rbf-20210610.pkl'}
 
     return par
