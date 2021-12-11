@@ -64,6 +64,8 @@ class PC_exposure:
 
         self.has_dome = None
 
+        self.streaks = None
+
     def update_dome_flag(self):
         """
         Compute and store boolean flag for dome vignetting.

@@ -59,4 +59,6 @@ def detect_streaks(exp):
     print('Found ' + str(len(streaks)) + ' streaks')
     print('Streak detection took ' + '{:.2f}'.format(dt) + ' seconds')
 
+    exp.streaks = streaks
+
     return streaks

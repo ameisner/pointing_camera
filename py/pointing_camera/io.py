@@ -359,5 +359,10 @@ def plot_detrended(exp, outdir):
 
     plt.title(title)
 
+    # overplot satellite streaks
+    if exp.streaks is not None:
+        for streak in exp.streaks:
+            plt.plot(streak['x'], streak['y'], linewidth=0.25)
+
     plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
     os.rename(outname_tmp, outname)
