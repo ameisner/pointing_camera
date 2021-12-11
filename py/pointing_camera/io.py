@@ -13,6 +13,8 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from functools import lru_cache
 import pickle
+from scipy.stats import scoreatpercentile
+import numpy as np
 
 def write_image_level_outputs(exp, outdir):
     """
@@ -311,4 +313,51 @@ def write_streaks(exp, streaks, outdir):
 
     pickle.dump(streaks, open(outname_tmp, "wb" ) )
 
+    os.rename(outname_tmp, outname)
+
+def plot_detrended(exp, outdir):
+    """
+    Save a rendering of the detrended pointing camera image.
+
+        exp : exposure.PC_exposure
+            Pointing camera exposure object.
+        outdir : str
+            Full path of output directory.
+
+    Notes
+    -----
+        Downbinning?
+        Should parcel out the plotting code to its own function...
+
+    """
+
+    assert(os.path.exists(outdir))
+
+    outname = (os.path.split(exp.fname_im))[-1]
+
+    outname = outname.replace('.fits', '-detrended.png')
+    outname_tmp = 'tmp.' + outname
+
+    outname = os.path.join(outdir, outname)
+    outname_tmp = os.path.join(outdir, outname_tmp)
+
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
+
+
+    limits = scoreatpercentile(np.ravel(exp.detrended), [1, 99])
+
+    plt.cla()
+    plt.imshow(exp.detrended, vmin=limits[0], vmax=limits[1], origin='lower',
+               interpolation='nearest', cmap='gray')
+
+    plt.xticks([])
+    plt.yticks([])
+
+    title = exp.fname_im.split('/')[-1]
+    title = title.replace('.fits', '')
+
+    plt.title(title)
+
+    plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
     os.rename(outname_tmp, outname)

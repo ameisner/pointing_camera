@@ -23,7 +23,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
             sci_fov_checkplot=False, check_tcs_motion=False,
-            max_zp_radius=None, detect_streaks=False):
+            max_zp_radius=None, detect_streaks=False, plot_detrended=False):
     """
     Process one pointing camera image.
 
@@ -93,6 +93,10 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             detection takes an excessively long time, but there might be).
             At present, running streak detection will also require the
             astride streak detection package to be installed.
+        plot_detrended : bool, optional
+            If True, make and save a rendering of the detrended pointing
+            camera image. Would be good to eventually allow for overplotting
+            of detected satellite streaks on this rendering.
 
     """
 
@@ -159,6 +163,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
         if detect_streaks:
             io.write_streaks(exp, streaks, outdir)
+
+        if plot_detrended:
+            io.plot_detrended(exp, outdir)
 
         if send_redis:
             print('Attempting to send results to redis...')
@@ -233,6 +240,10 @@ if __name__ == "__main__":
                         action='store_true',
                         help="run satellite streak detection/cataloging")
 
+    parser.add_argument('--plot_detrended', default=False,
+                        action='store_true',
+                        help="make and save plot of detrended image")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -252,4 +263,5 @@ if __name__ == "__main__":
             sci_fov_checkplot=args.sci_fov_checkplot,
             check_tcs_motion=args.check_tcs_motion,
             max_zp_radius=args.max_zp_radius,
-            detect_streaks=args.detect_streaks)
+            detect_streaks=args.detect_streaks,
+            plot_detrended=args.plot_detrended)
