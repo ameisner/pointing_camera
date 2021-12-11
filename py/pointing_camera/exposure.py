@@ -6,8 +6,10 @@ A class representing a pointing camera exposure.
 """
 
 import pointing_camera.util as util
+import pointing_camera.common as common
 import os
 import astropy.io.fits as fits
+import copy
 
 class PC_exposure:
     """Object encapsulating the contents of a single pointing camera exposure"""
@@ -120,9 +122,18 @@ class PC_exposure:
 
         return outname
 
-    def _write_tmp_detrended(self):
+    def _write_tmp_detrended(self, null_edge=False):
         """
         Write detrended image and header to /tmp as a FITS image file.
+
+            null_edge : bool, optional
+                Null out edge pixel values (the one edge-most row/column
+                along each boundary) so that astride will 'close' the
+                contours of satellite streaks that extend off the image edges.
+                Could imagine trying other choices, like some value less
+                than the minimum pixel value across the entire detrended image.
+                Or maybe NaN values? Could also try nulling N > 1 edge-most
+                rows/columns, rather than just N = 1.
 
         Notes
         -----
@@ -133,7 +144,16 @@ class PC_exposure:
 
         outname = self._tmp_detrended_filename()
 
-        hdu = fits.PrimaryHDU(self.detrended, self.header)
+        if null_edge:
+            par = common.pc_params()
+            im = copy.deepcopy(self.detrended)
+            im[:, 0] = 0
+            im[:, par['nx']-1] = 0
+            im[0, :] = 0
+            im[par['ny']-1, :] = 0
+            hdu = fits.PrimaryHDU(im, self.header)
+        else:
+            hdu = fits.PrimaryHDU(self.detrended, self.header)
 
         hdu.writeto(outname)
 

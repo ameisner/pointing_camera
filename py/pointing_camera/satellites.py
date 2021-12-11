@@ -42,7 +42,7 @@ def detect_streaks(exp):
 
     t0 = time.time()
 
-    exp._write_tmp_detrended()
+    exp._write_tmp_detrended(null_edge=True)
 
     fname = exp._tmp_detrended_filename()
 
