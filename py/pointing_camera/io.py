@@ -315,7 +315,7 @@ def write_streaks(exp, streaks, outdir):
 
     os.rename(outname_tmp, outname)
 
-def plot_detrended(exp, outdir):
+def plot_detrended(exp, outdir, plot_streaks=False):
     """
     Save a rendering of the detrended pointing camera image.
 
@@ -323,6 +323,9 @@ def plot_detrended(exp, outdir):
             Pointing camera exposure object.
         outdir : str
             Full path of output directory.
+        plot_streaks : bool, optional
+            If True, overplot satellite streak outlines (if any were
+            detected).
 
     Notes
     -----
@@ -359,10 +362,11 @@ def plot_detrended(exp, outdir):
 
     plt.title(title)
 
-    # overplot satellite streaks
-    if exp.streaks is not None:
-        for streak in exp.streaks:
-            plt.plot(streak['x'], streak['y'], linewidth=0.25)
+    if plot_streaks:
+        # overplot satellite streaks
+        if exp.streaks is not None:
+            for streak in exp.streaks:
+                plt.plot(streak['x'], streak['y'], linewidth=0.25)
 
     plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
     os.rename(outname_tmp, outname)

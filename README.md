@@ -46,6 +46,7 @@ This produces the following output files:
     usage: pc_proc.py [-h] [--outdir OUTDIR] [--dont_write_detrended] [--skip_checkplot] [--nightly_subdir] [--send_redis] [--one_aper]
                       [--bg_sigclip] [--multiproc MULTIPROC] [--max_n_stars MAX_N_STARS] [--pm_corr] [--skip_flatfield]
 		      [--sci_inst_name SCI_INST_NAME] [--sci_fov_checkplot] [--check_tcs_motion] [--detect_streaks] [--plot_detrended]
+		      [--plot_streaks]
                       fname_in
 
     run the pointing camera reduction pipeline on an exposure
@@ -75,6 +76,7 @@ This produces the following output files:
       --check_tcs_motion    abort reductions based on telescope motion flag
       --detect_streaks      run satellite streak detection/cataloging
       --plot_detrended      make and save plot of detrended image
+      --plot_streaks        overplot detected streaks on detrended image
 
 # Redis telemetry
 
