@@ -9,6 +9,32 @@ from astride import Streak
 import time
 import pickle
 
+def streak_radec(streak, wcs):
+    """
+    Compute streak boundary sky coordinates.
+
+    Parameters
+    ----------
+        streak : dict
+            Dictionary representing the parameters of a single streak. Must
+            have keys 'x' and 'y' containing the pixel coordinate boundaries
+            of the streak.
+        wcs : astropy.wcs.wcs.WCS
+            Astropy WCS object.
+
+    Notes
+    -----
+        Input dictionary gets modified via the addition of keys called
+        'ra' and 'dec' holding the (ra, dec) coordinates of the streak in
+        units of degrees.
+
+    """
+
+    ra, dec = wcs.all_pix2world(streak['x'], streak['y'], 0)
+
+    streak['ra'] = ra
+    streak['dec'] = dec
+
 def detect_streaks(exp):
     """
     Run streak detection.
@@ -53,6 +79,9 @@ def detect_streaks(exp):
     exp._del_tmp_detrended()
 
     streaks = streak.streaks
+
+    for streak in streaks:
+        streak_radec(streak, exp.wcs)
 
     dt = time.time() - t0
 
