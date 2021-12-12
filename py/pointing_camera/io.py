@@ -319,6 +319,8 @@ def plot_detrended(exp, outdir, plot_streaks=False):
     """
     Save a rendering of the detrended pointing camera image.
 
+    Parameters
+    ----------
         exp : exposure.PC_exposure
             Pointing camera exposure object.
         outdir : str
@@ -367,6 +369,50 @@ def plot_detrended(exp, outdir, plot_streaks=False):
         if exp.streaks is not None:
             for streak in exp.streaks:
                 plt.plot(streak['x'], streak['y'], linewidth=0.25)
+
+    plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
+    os.rename(outname_tmp, outname)
+
+def save_quiver_plot(exp, cat, outdir):
+    """
+    Make and write out a quiver plot of the centroid refinement shifts.
+
+    Parameters
+    ----------
+        exp : exposure.PC_exposure
+            Pointing camera exposure object.
+        cat : astropy.table.table.Table
+            Table containing the source catalog with centroid, photometry
+            measurements and Gaia cross-match columns.
+        outdir : str
+            Full path of output directory.
+
+    """
+
+    from pointing_camera.util import quiver_plot
+
+    status = quiver_plot(cat)
+
+    if not status:
+        return
+
+    title = exp.fname_im.split('/')[-1]
+    title = title.replace('.fits', '')
+
+    plt.title(title)
+
+    assert(os.path.exists(outdir))
+
+    outname = (os.path.split(exp.fname_im))[-1]
+
+    outname = outname.replace('.fits', '-quiver.png')
+    outname_tmp = 'tmp.' + outname
+
+    outname = os.path.join(outdir, outname)
+    outname_tmp = os.path.join(outdir, outname_tmp)
+
+    assert(not os.path.exists(outname))
+    assert(not os.path.exists(outname_tmp))
 
     plt.savefig(outname_tmp, dpi=200, bbox_inches='tight')
     os.rename(outname_tmp, outname)

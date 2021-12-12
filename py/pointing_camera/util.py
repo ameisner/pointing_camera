@@ -22,6 +22,7 @@ from astropy.stats import sigma_clipped_stats
 from astropy.time import Time
 from multiprocessing import Pool
 from functools import lru_cache
+import matplotlib.pyplot as plt
 
 def get_wcs_filename(fname_im, verify=True):
     """
@@ -1679,3 +1680,49 @@ def add_field_center_cols(tab, header):
     for card in card2col.keys():
         if card in header:
             tab[card2col[card]] = header[card]
+
+def quiver_plot(_cat):
+    """
+    Make a quiver plot of recentroiding shifts.
+
+    Parameters
+    ----------
+        _cat : astropy.table.table.Table
+            Pointing camera source catalog including refined centroids.
+
+    Returns
+    -------
+        status : bool
+            Whether a quiver plot was made.
+
+    """
+
+    good = np.logical_not(_cat['centroid_pixel_saturated']) & \
+           (_cat['centroid_raw_pixel_val'] < 15300) & \
+           np.logical_not(_cat['centroid_shift_flag']) & \
+           np.logical_not(_cat['wrong_source_centroid'])
+
+    cat = _cat[good]
+
+    if len(cat) == 0:
+        print('no sources with good centroids to make quiver plot?')
+        return False
+
+    dx = cat['xcentroid'] - cat['x_gaia_guess']
+    dy = cat['ycentroid'] - cat['y_gaia_guess']
+
+    dist = np.hypot(dx, dy)
+
+    plt.cla()
+    plt.quiver(cat['xcentroid'], cat['ycentroid'], dx, dy,
+               scale=10, scale_units='inches')
+
+    plt.xticks([])
+    plt.yticks([])
+
+    par = common.pc_params()
+
+    plt.xlim((0, par['nx']-1))
+    plt.ylim((0, par['ny']-1))
+
+    return True

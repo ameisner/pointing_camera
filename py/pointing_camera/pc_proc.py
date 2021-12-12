@@ -24,7 +24,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
             sci_fov_checkplot=False, check_tcs_motion=False,
             max_zp_radius=None, detect_streaks=False, plot_detrended=False,
-            plot_streaks=False):
+            plot_streaks=False, plot_quiver=False):
     """
     Process one pointing camera image.
 
@@ -102,6 +102,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             If True, overplot any detected streaks on the detrended image
             rendering. If plot_detrended is False, then plot_streaks has no
             effect.
+        plot_quiver : bool, optional
+            If True, make and save a quiver plot of the centroid
+            shifts relative to the astrometry.net WCS solution.
 
     """
 
@@ -171,6 +174,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
 
         if plot_detrended:
             io.plot_detrended(exp, outdir, plot_streaks=plot_streaks)
+
+        if plot_quiver:
+            io.save_quiver_plot(exp, cat, outdir)
 
         if send_redis:
             print('Attempting to send results to redis...')
@@ -253,6 +259,9 @@ if __name__ == "__main__":
                         action='store_true',
                         help="overplot detected streaks on detrended image")
 
+    parser.add_argument('--plot_quiver', default=False, action='store_true',
+                       help="make and save quiver plot of centroid shifts")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -273,4 +282,5 @@ if __name__ == "__main__":
             check_tcs_motion=args.check_tcs_motion,
             max_zp_radius=args.max_zp_radius,
             detect_streaks=args.detect_streaks,
-            plot_detrended=args.plot_detrended, plot_streaks=args.plot_streaks)
+            plot_detrended=args.plot_detrended, plot_streaks=args.plot_streaks,
+            plot_quiver=args.plot_quiver)
