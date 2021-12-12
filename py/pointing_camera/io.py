@@ -399,6 +399,8 @@ def save_quiver_plot(exp, cat, outdir):
     title = exp.fname_im.split('/')[-1]
     title = title.replace('.fits', '')
 
+    title += ' ; ' + str(exp.wcs.wcs.ctype)
+
     plt.title(title)
 
     assert(os.path.exists(outdir))
