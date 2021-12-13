@@ -547,7 +547,7 @@ def badpix_interp(im):
 
     return result
 
-def detrend_pc(exp, skip_flatfield=False):
+def detrend_pc(exp, skip_flatfield=False, ml_dome_flag=False):
     """
     Driver for detrending a raw pointing camera image.
 
@@ -555,9 +555,11 @@ def detrend_pc(exp, skip_flatfield=False):
     ----------
         exp : pointing_camera.exposure.PC_exposure
             Pointing camera exposure object.
-
         skip_flatfield : bool, optional
             Set True to skip the flat field application step.
+        ml_dome_flag : bool, optional
+            If True, use machine learning classifier to flag dome vignetting
+            (otherwise a heuristic method is employed).
 
     """
 
@@ -585,7 +587,7 @@ def detrend_pc(exp, skip_flatfield=False):
 
     exp.detrended = im
 
-    exp.update_dome_flag()
+    exp.update_dome_flag(use_ml=ml_dome_flag)
 
     print('Finished detrending the raw pointing camera image')
 
@@ -723,7 +725,7 @@ def sky_summary_table(exp):
         t['DEV_FNUM'] = exp.header['DEV_FNUM']
 
     if exp.has_dome is not None:
-        t['has_dome'] = exp.has_dome.astype('int16')
+        t['has_dome'] = int(exp.has_dome)
 
     return t
 
@@ -1361,7 +1363,7 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
     cat['radius_too_large'] = cat['radius_too_large'].astype('int16')
 
     if exp.has_dome is not None:
-        cat['has_dome'] = exp.has_dome.astype('int16')
+        cat['has_dome'] = int(exp.has_dome)
 
     source_raw_pixel_metrics(cat, exp.raw_image)
 
@@ -1726,3 +1728,105 @@ def quiver_plot(_cat):
     plt.ylim((0, par['ny']-1))
 
     return True
+
+def rebin(a, shape):
+    """
+    Rebin an array by via simple averaging.
+
+    Parameters
+    ----------
+        a : numpy.ndarray
+            2D numpy array to rebin.
+        shape : tuple
+            2-element tuple listing the target dimensions of the rebinned
+            output array. Each element of shape should be an integer
+            factor of its corresponding element in the dimensions of a.
+
+    Notes
+    -----
+        Meant to be a Python port of the IDL routine REBIN.
+
+        https://stackoverflow.com/questions/8090229/resize-with-averaging-or-rebin-a-numpy-2d-array
+    """
+
+    sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
+    return a.reshape(sh).mean(-1).mean(1)
+
+def ml_feature_vector(detrended):
+    """
+    Convert detrended image to a feature vector for machine learning classifier.
+
+    Parameters
+    ----------
+        detrended : numpy.ndarray
+            2D array holding the detrended image.
+
+    Returns
+    -------
+        X : numpy.ndarray
+            Feature vector corresponding to the detrended image;
+            a flattened (1D) version of the downbinned and normalized
+            detrended image.
+
+    Notes
+    -----
+        The detrended image gets normalized based upon its mean, so it
+        doesn't matter whether the detrended image has units of ADU versus
+        ADU/second.
+
+    """
+
+    sh = detrended.shape
+
+    binfac = 103 # extract this special number somewhere else...
+
+    assert((sh[0] % binfac == 0) and (sh[1] % binfac == 0))
+
+    ny_small = sh[0] // binfac
+    nx_small = sh[1] // binfac
+
+    reb = rebin(detrended, (ny_small, nx_small))
+
+    reb /= np.mean(reb)
+
+    X = np.ravel(reb)
+
+    X = X.reshape(1, -1) # recommended by sklearn error/warning message...
+
+    return X
+
+def ml_dome_flag(detrended):
+    """
+    Machine learning boolean prediction of dome vignetting.
+
+    Parameters
+    ----------
+        detrended : numpy.ndarray
+            Detrended image as a 2D numpy array.
+
+    Returns
+    -------
+        has_dome : bool
+            Boolean label (True = has any amount of dome vignetting,
+            False = no dome vignetting)
+
+    Notes
+    -----
+        Loads pre-trained classifier, converts detrended image into feature
+        vector, and computes/returns the classifier's boolean prediction.
+
+    """
+
+    print('Flagging dome vignetting with machine learning approach...')
+    t0 = time.time()
+
+    X = ml_feature_vector(detrended)
+
+    svc = io.load_dome_clf()
+    has_dome = bool(svc.predict(X)[0])
+
+    dt = time.time()-t0
+    print('Done with feature extraction and classification...took ' + \
+          '{:.2f}'.format(dt) + ' seconds')
+
+    return has_dome

@@ -251,7 +251,7 @@ def calc_many_zps(cat, exp, one_aper=False, checkplot=True, nmp=None,
     util.add_field_center_cols(results, exp.header)
 
     if exp.has_dome is not None:
-        results['has_dome'] = exp.has_dome.astype('int16')
+        results['has_dome'] = int(exp.has_dome)
 
     sind = np.argsort(1000*results['quadrant'] + results['aper_ind'] + \
                       0.5*results['science_fov_only'])

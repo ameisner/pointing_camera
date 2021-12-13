@@ -66,9 +66,15 @@ class PC_exposure:
 
         self.streaks = None
 
-    def update_dome_flag(self):
+    def update_dome_flag(self, use_ml=False):
         """
         Compute and store boolean flag for dome vignetting.
+
+        Parameters
+        ----------
+            use_ml : bool, optional
+                If True, use machine learning classifier to flag dome
+                vignetting. Otherwise, use a heuristic.
 
         Notes
         -----
@@ -79,8 +85,11 @@ class PC_exposure:
 
         assert(self.is_detrended)
 
-        self.has_dome = util.flag_dome_vignetting(self.detrended,
-                                                  self.time_seconds)
+        if not use_ml:
+            self.has_dome = util.flag_dome_vignetting(self.detrended,
+                                                      self.time_seconds)
+        else:
+            self.has_dome = util.ml_dome_flag(self.detrended)
 
         self.header['DOMEFLAG'] = (self.has_dome, 'potential dome vignetting')
 

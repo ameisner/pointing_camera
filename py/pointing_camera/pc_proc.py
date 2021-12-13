@@ -24,7 +24,7 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
             sci_fov_checkplot=False, check_tcs_motion=False,
             max_zp_radius=None, detect_streaks=False, plot_detrended=False,
-            plot_streaks=False, plot_quiver=False):
+            plot_streaks=False, plot_quiver=False, ml_dome_flag=False):
     """
     Process one pointing camera image.
 
@@ -105,6 +105,9 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         plot_quiver : bool, optional
             If True, make and save a quiver plot of the centroid
             shifts relative to the astrometry.net WCS solution.
+        ml_dome_flag : bool, optional
+            If True, use machine learning classifier to flag dome vignetting
+            (otherwise a heuristic method is employed).
 
     """
 
@@ -128,7 +131,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         print('Telescope moved during exposure, abandoning further analysis')
         return
 
-    util.detrend_pc(exp, skip_flatfield=skip_flatfield)
+    util.detrend_pc(exp, skip_flatfield=skip_flatfield,
+                    ml_dome_flag=ml_dome_flag)
 
     sky = util.sky_summary_table(exp)
 
@@ -260,7 +264,10 @@ if __name__ == "__main__":
                         help="overplot detected streaks on detrended image")
 
     parser.add_argument('--plot_quiver', default=False, action='store_true',
-                       help="make and save quiver plot of centroid shifts")
+                        help="make and save quiver plot of centroid shifts")
+
+    parser.add_argument('--ml_dome_flag', default=False, action='store_true',
+                        help="use machine learning to flag dome vignetting")
 
     args = parser.parse_args()
 
@@ -283,4 +290,4 @@ if __name__ == "__main__":
             max_zp_radius=args.max_zp_radius,
             detect_streaks=args.detect_streaks,
             plot_detrended=args.plot_detrended, plot_streaks=args.plot_streaks,
-            plot_quiver=args.plot_quiver)
+            plot_quiver=args.plot_quiver, ml_dome_flag=args.ml_dome_flag)
