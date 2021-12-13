@@ -43,6 +43,10 @@ This produces the following output files:
 
 <img src="static/20210627.000820.15370_20000-quiver.png" width="550">
 
+## overplotting of detected satellite streak contours
+
+<img src="static/20210611.210333.01427_20000-detrended.png" width="550">
+
 # full help for running the pipeline
 
     pointing_camera/py/pointing_camera> python pc_proc.py --help
