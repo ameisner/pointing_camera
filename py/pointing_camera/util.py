@@ -1904,8 +1904,11 @@ def pointing_camera_index(night, require_standard_exptime=True,
             continue
 
         if 'MJD-OBS' in h:
+            # would it be better to replace missing ZPFLAG with 0
+            # rather than None?
+            zpflag = h['ZPFLAG'] if 'ZPFLAG' in h else None
             result = (f, h['MJD-OBS'] - tai_utc_offs, h['HA'], h['DEC'], \
-                      h['EXPTIME'])
+                      h['EXPTIME'], zpflag)
             results.append(result)
         else:
             print(f + ' does not have MJD-OBS??')
@@ -1916,6 +1919,7 @@ def pointing_camera_index(night, require_standard_exptime=True,
     t['HA'] = [r[2] for r in results]
     t['DEC'] = [r[3] for r in results]
     t['EXPTIME_SECONDS'] = [r[4]/1000.0 for r in results]
+    t['ZPFLAG'] = [r[5] for r in results]
 
     if require_standard_exptime:
         t = t[t['EXPTIME_SECONDS'] == par['standard_exptime_seconds']]
