@@ -1857,18 +1857,19 @@ def pointing_camera_index(night, require_standard_exptime=True,
 
     Notes
     -----
-        Should factor out the standard exposure 'special number' (20 seconds
-        for El Nino).
-
         Should add a column for ZPFLAG as well, being careful about the
         fact that ZPFLAG was only added in winter of 2021, so won't always
         be present.
+
+        Why does this gather (HA, Dec) in sexagesimal format??
 
         Add multiprocessing option for speed-up?
 
         Caches result to avoid wasting time on repeated I/O.
 
     """
+
+    par = common.pc_params()
 
     year = night[0:4]
     month = night[4:6]
@@ -1880,7 +1881,7 @@ def pointing_camera_index(night, require_standard_exptime=True,
 
     if raw_data_basedir is None:
         raw_data_basedir = \
-            os.environ['PC_RAW_DATA_DIR'] # absorb into pc_params?
+            os.environ[par['raw_data_env_var']]
 
     pattern = os.path.join(raw_data_basedir, monthdir, nightdir, '*.fits')
 
@@ -1917,6 +1918,6 @@ def pointing_camera_index(night, require_standard_exptime=True,
     t['EXPTIME_SECONDS'] = [r[4]/1000.0 for r in results]
 
     if require_standard_exptime:
-        t = t[t['EXPTIME_SECONDS'] == 20]
+        t = t[t['EXPTIME_SECONDS'] == par['standard_exptime_seconds']]
 
     return t

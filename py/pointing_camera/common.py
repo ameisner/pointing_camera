@@ -36,6 +36,7 @@ def pc_params():
            'dark_adu_per_s_quad': [0.096094832, 0.099679574, 0.083682373,
                                    0.083619997],
            'meta_env_var' : 'POINTING_CAMERA_META',
+           'raw_data_env_var' : 'PC_RAW_DATA_DIR',
            'static_mask_filename' : 'pc_badpix_mask.fits.gz',
            'master_bias_filename' : 'pc_master_bias.fits.gz',
            'master_dark_filename' : 'pc_master_dark.fits.gz',
@@ -51,6 +52,7 @@ def pc_params():
            'zp_adu_per_s': 17.58,
            'dome_thresh_adu_per_s': 0.5,
            'gaia_nside': 32,
-           'fname_clf': 'svc_rbf-20210610.pkl'}
+           'fname_clf': 'svc_rbf-20210610.pkl',
+           'standard_exptime_seconds': 20.0}
 
     return par
