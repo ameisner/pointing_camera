@@ -8,6 +8,7 @@ A collection of pointing camera related utility functions.
 import astropy.io.fits as fits
 from astropy import wcs
 import os
+import glob
 import pointing_camera.common as common
 import pointing_camera.io as io
 import pointing_camera.analysis.djs_maskinterp as djs_maskinterp
@@ -1830,3 +1831,92 @@ def ml_dome_flag(detrended):
           '{:.2f}'.format(dt) + ' seconds')
 
     return has_dome
+
+@lru_cache()
+def pointing_camera_index(night, require_standard_exptime=True,
+                          raw_data_basedir=None):
+    """
+    Get a tabulation of pointing camera exposures and their MJD values.
+
+    Parameters
+    ----------
+        night : str
+            Eight element observing night string, YYYYMMDD format.
+        require_standard_exptime : bool, optional
+            Whether or not to require the standard exposure time, which
+            for El Nino has been 20 seconds.
+        raw_data_basedir : str, optional
+            Full path to raw pointing camera data base directory. If no
+            value is specified, it will be determined from PC_RAW_DATA_DIR.
+
+    Returns
+    -------
+        t : astropy.table.table.Table
+            Table of pointing camera image file names and their metadata
+            for the relevant observing night.
+
+    Notes
+    -----
+        Should factor out the standard exposure 'special number' (20 seconds
+        for El Nino).
+
+        Should add a column for ZPFLAG as well, being careful about the
+        fact that ZPFLAG was only added in winter of 2021, so won't always
+        be present.
+
+        Add multiprocessing option for speed-up?
+
+        Caches result to avoid wasting time on repeated I/O.
+
+    """
+
+    year = night[0:4]
+    month = night[4:6]
+    day = night[6:8]
+
+    # pointing camera raw data convention
+    monthdir = year + '-' + month
+    nightdir = year + '-' + month + '-' + day
+
+    if raw_data_basedir is None:
+        raw_data_basedir = \
+            os.environ['PC_RAW_DATA_DIR'] # absorb into pc_params?
+
+    pattern = os.path.join(raw_data_basedir, monthdir, nightdir, '*.fits')
+
+    flist = glob.glob(pattern)
+
+    if len(flist) == 0:
+        return None
+
+    flist.sort()
+
+    tai_utc_offs = 37.0/(24.0*3600.0) # in days
+
+    results = []
+    for i, f in enumerate(flist):
+        print('working on ', i+1, ' of ', len(flist), ' : ' + f)
+        try:
+            h = fits.getheader(f)
+        except:
+            print('corrupt raw pointing camera image??' + f)
+            continue
+
+        if 'MJD-OBS' in h:
+            result = (f, h['MJD-OBS'] - tai_utc_offs, h['HA'], h['DEC'], \
+                      h['EXPTIME'])
+            results.append(result)
+        else:
+            print(f + ' does not have MJD-OBS??')
+
+    t = Table()
+    t['FNAME'] = [r[0] for r in results]
+    t['MJD'] = [r[1] for r in results]
+    t['HA'] = [r[2] for r in results]
+    t['DEC'] = [r[3] for r in results]
+    t['EXPTIME_SECONDS'] = [r[4]/1000.0 for r in results]
+
+    if require_standard_exptime:
+        t = t[t['EXPTIME_SECONDS'] == 20]
+
+    return t
