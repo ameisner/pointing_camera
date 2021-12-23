@@ -12,6 +12,7 @@ import imageio
 import numpy as np
 from pointing_camera.exposure import PC_exposure
 import os
+from multiprocessing import Pool
 
 def desi_exposures_1night(night):
     """
@@ -121,7 +122,7 @@ def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.',
     # use imageio to create the GIF, specifying an FPS value
     imageio.mimsave(outname, ims, fps=10)
 
-def all_movies_1night(night, outdir='.'):
+def all_movies_1night(night, outdir='.', nmp=None):
     """
     Generate all pointing camera animations for one observing night.
 
@@ -131,6 +132,10 @@ def all_movies_1night(night, outdir='.'):
             Eight element observing night string, YYYYMMDD format.
         outdir : str, optional
             Full path of output directory. Defaults to current directory.
+        nmp : int, optional
+            Number of processes for multiprocessing. Values > 1 but less than
+            the total number of CPUs on the machine make sense. Default
+            of None means that the movies will be generated in serial.
 
     """
 
@@ -139,14 +144,24 @@ def all_movies_1night(night, outdir='.'):
 
     seconds_per_day = 86400.0
 
+    args = []
     for exposure in exp_desi:
         if exposure['exptime'] is None:
             continue
 
         mjdmin = exposure['mjd_obs']
         mjdmax = mjdmin + exposure['exptime']/seconds_per_day
-        desi_exp_movie(exp_pc, exposure['id'], mjdmin, mjdmax, outdir=outdir,
-                       reqra=exposure['reqra'], reqdec=exposure['reqdec'])
+        args.append((exp_pc, exposure['id'], mjdmin, mjdmax, outdir,
+                     exposure['reqra'], exposure['reqdec']))
+
+    if (nmp is None) or (nmp == 1):
+        for arg in args:
+            desi_exp_movie(*arg)
+    else:
+        p =  Pool(nmp)
+        p.starmap(desi_exp_movie, args)
+        p.close()
+        p.join()
 
 def one_pc_rendering(fname, dome_flag_ml=False, reqra=None, reqdec=None):
     """
