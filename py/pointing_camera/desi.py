@@ -15,7 +15,7 @@ import os
 
 def desi_exposures_1night(night):
     """
-    Gather list of DESI exposures for a given observing
+    Gather list of DESI exposures for a given observing night.
 
     Parameters
     ----------
@@ -32,8 +32,8 @@ def desi_exposures_1night(night):
     -----
         What happens if there are no rows of output from the SQL query?
 
-        This routine is not intended to downselect to exposures that
-        were full-fledged DESI sequences.
+        This routine is not currently intended to downselect to exposures that
+        were full-fledged DESI sequences. Might change this in the future.
 
     """
     
@@ -44,7 +44,7 @@ def desi_exposures_1night(night):
     import psycopg2 as psycopg
     import psycopg2.extras
 
-    # should add a flavor = science constraint too
+    # downselect to full-fledged DESI sequences?
     sql = "SELECT id, mjd_obs, night, exptime, reqra, reqdec, skyra, skydec, targtra, targtdec FROM exposure WHERE (night = " + night + ") AND (flavor = 'science')"
 
     conn =  psycopg.connect(exp.dsn)
@@ -63,7 +63,28 @@ def desi_exposures_1night(night):
 
 def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.'):
     """
-    
+    Make a movie of pointing camera images during one DESI exposure.
+
+    Parameters
+    ----------
+        _pc_index : astropy.table.table.Table
+            Index table of pointing camera exposures spanning at least the
+            (mjdmin, mjdmax) time interval. Expect that _pc_index will
+            typically cover a full observing night.
+        expid : int
+            Eight digit integer representing the observing night, YYYYMMDD
+            format.
+        mjdmin : float
+            Minimum MJD of the DESI exposure.
+        mjdmax : float
+            Maximum MJD of the DESI exposure.
+        outdir : str, optional
+            Full path of output directory.
+
+    Notes
+    -----
+        Writes out an animated GIF movie of pointing camera images acquired
+        during the DESI exposure.
 
     """
 
@@ -136,6 +157,9 @@ def one_pc_rendering(fname, dome_flag_ml=False):
 
     Returns
     -------
+        im : numpy.ndarray
+            Downbinned rendering of the detrended pointing camera image that
+            can be used as one frame in an animation.
 
     Notes
     -----
@@ -183,6 +207,7 @@ def one_pc_rendering(fname, dome_flag_ml=False):
     xbox = xbox.reshape(sh)
     ybox = ybox.reshape(sh)
 
+    # do this with numpy.hypot instead
     dist = np.sqrt(np.power(xbox, 2) + np.power(ybox, 2))
 
     mask = np.abs(dist - par['science_radius_pix']/binfac) < 0.5
