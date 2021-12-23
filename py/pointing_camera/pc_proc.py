@@ -16,7 +16,7 @@ import pointing_camera.util as util
 import pointing_camera.io as io
 import pointing_camera.zp as zp
 import pointing_camera.common as common
-import satellites
+import pointing_camera.satellites as satellites
 
 def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             skip_checkplot=False, nightly_subdir=False, send_redis=False,

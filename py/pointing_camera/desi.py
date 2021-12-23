@@ -36,7 +36,7 @@ def desi_exposures_1night(night):
         were full-fledged DESI sequences. Might change this in the future.
 
     """
-    
+
     assert(isinstance(night, str))
     assert(len(night) == 8)
 
@@ -45,7 +45,7 @@ def desi_exposures_1night(night):
     import psycopg2.extras
 
     # downselect to full-fledged DESI sequences?
-    sql = "SELECT id, mjd_obs, night, exptime, reqra, reqdec, skyra, skydec, targtra, targtdec FROM exposure WHERE (night = " + night + ") AND (flavor = 'science')"
+    sql = "SELECT id, mjd_obs, night, exptime, reqra, reqdec, skyra, skydec, targtra, targtdec FROM exposure WHERE (night = " + night + ") AND (flavor = 'science') AND (sequence = 'DESI')"
 
     conn =  psycopg.connect(exp.dsn)
 
