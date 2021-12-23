@@ -1,6 +1,6 @@
 """
 pointing_camera.desi
-======================
+====================
 
 DESI-specific utilities, including those related to the DESI telemetry database.
 """
@@ -94,6 +94,11 @@ def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.',
 
     """
 
+    print('WORKING ON EXPID = ' + str(expid))
+
+    if _pc_index is None:
+        return None
+
     # figure out which subset of pointing camera images
     # falls in the correct MJDRANGE
 
@@ -139,6 +144,8 @@ def all_movies_1night(night, outdir='.', nmp=None):
 
     """
 
+    print('WORKING ON NIGHT : ' + night)
+
     exp_desi = desi_exposures_1night(night)
     exp_pc = util.pointing_camera_index(night)
 
@@ -146,7 +153,7 @@ def all_movies_1night(night, outdir='.', nmp=None):
 
     args = []
     for exposure in exp_desi:
-        if exposure['exptime'] is None:
+        if (exposure['exptime'] is None) or (exposure['mjd_obs'] is None):
             continue
 
         mjdmin = exposure['mjd_obs']
@@ -156,6 +163,7 @@ def all_movies_1night(night, outdir='.', nmp=None):
 
     if (nmp is None) or (nmp == 1):
         for arg in args:
+            print('WORKING ON DESI EXPID = ' + str(arg[1]))
             desi_exp_movie(*arg)
     else:
         p =  Pool(nmp)
