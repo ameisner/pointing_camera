@@ -61,7 +61,8 @@ def desi_exposures_1night(night):
 
     return data
 
-def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.'):
+def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.',
+                   reqra=None, reqdec=None):
     """
     Make a movie of pointing camera images during one DESI exposure.
 
@@ -80,6 +81,10 @@ def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.'):
             Maximum MJD of the DESI exposure.
         outdir : str, optional
             Full path of output directory.
+        reqra : float, optional
+            Actual desired field center RA for DESI sequences (degrees).
+        reqdec : float, optional
+            Actual desired field center Dec for DESI sequences (degrees).
 
     Notes
     -----
@@ -105,7 +110,7 @@ def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.'):
 
     ims = []
     for row in pc_index:
-        im = one_pc_rendering(row['FNAME'])
+        im = one_pc_rendering(row['FNAME'], reqra=reqra, reqdec=reqdec)
         ims.append(im)
 
     # what happens in the case of exactly one pointing camera image?
@@ -115,7 +120,6 @@ def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.'):
 
     # use imageio to create the GIF, specifying an FPS value
     imageio.mimsave(outname, ims, fps=10)
-    
 
 def all_movies_1night(night, outdir='.'):
     """
@@ -141,9 +145,10 @@ def all_movies_1night(night, outdir='.'):
 
         mjdmin = exposure['mjd_obs']
         mjdmax = mjdmin + exposure['exptime']/seconds_per_day
-        desi_exp_movie(exp_pc, exposure['id'], mjdmin, mjdmax, outdir=outdir)
+        desi_exp_movie(exp_pc, exposure['id'], mjdmin, mjdmax, outdir=outdir,
+                       reqra=exposure['reqra'], reqdec=exposure['reqdec'])
 
-def one_pc_rendering(fname, dome_flag_ml=False):
+def one_pc_rendering(fname, dome_flag_ml=False, reqra=None, reqdec=None):
     """
     Make a low-resolution rendering of one pointing camera image.
 
@@ -154,17 +159,16 @@ def one_pc_rendering(fname, dome_flag_ml=False):
         dome_flag_ml : bool, optional
             If True, use machine learning approach when flagging dome
             vignetting.
+        reqra : float, optional
+            Actual desired field center RA for DESI sequences (degrees).
+        reqdec : float, optional
+            Actual desired field center Dec for DESI sequences (degrees).
 
     Returns
     -------
         im : numpy.ndarray
             Downbinned rendering of the detrended pointing camera image that
             can be used as one frame in an animation.
-
-    Notes
-    -----
-        Eventually upgrade to use REQRA, REQDEC and pointing camera WCS to most
-        accurately overplot the DESI FOV.
 
     """
 
@@ -182,7 +186,7 @@ def one_pc_rendering(fname, dome_flag_ml=False):
     sh = exp.detrended.shape
     im = util.rebin(exp.detrended, (int(sh[0]/binfac), int(sh[1]/binfac)))
     sh = im.shape
-    
+
     # figure out the stretch (should this be held constant across frames??)
     limits = scoreatpercentile(np.ravel(im), [1, 99])
 
@@ -191,15 +195,20 @@ def one_pc_rendering(fname, dome_flag_ml=False):
 
     # overplot approximate DESI FOV to guide the eye
     par = common.pc_params()
-    
+
     ybox = np.arange(sh[0]*sh[1], dtype=int) // sh[1]
     xbox = np.arange(sh[0]*sh[1], dtype=int) % sh[1]
 
     xbox = xbox.astype('float')
     ybox = ybox.astype('float')
 
-    x_center = (sh[1] // 2) - 0.5*((sh[1] % 2) == 0)
-    y_center = (sh[0] // 2) - 0.5*((sh[0] % 2) == 0)
+    if (reqra is None) or (reqdec is None):
+        x_center = (sh[1] // 2) - 0.5*((sh[1] % 2) == 0)
+        y_center = (sh[0] // 2) - 0.5*((sh[0] % 2) == 0)
+    else:
+        x_center, y_center = exp.wcs.all_world2pix(reqra, reqdec, 0)
+        x_center = float(x_center)/binfac
+        y_center = float(y_center)/binfac
 
     xbox -= x_center
     ybox -= y_center
