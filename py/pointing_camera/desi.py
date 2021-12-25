@@ -33,9 +33,6 @@ def desi_exposures_1night(night):
     -----
         What happens if there are no rows of output from the SQL query?
 
-        This routine is not currently intended to downselect to exposures that
-        were full-fledged DESI sequences. Might change this in the future.
-
     """
 
     assert(isinstance(night, str))
@@ -45,7 +42,6 @@ def desi_exposures_1night(night):
     import psycopg2 as psycopg
     import psycopg2.extras
 
-    # downselect to full-fledged DESI sequences?
     sql = "SELECT id, mjd_obs, night, exptime, reqra, reqdec, skyra, skydec, targtra, targtdec FROM exposure WHERE (night = " + night + ") AND (flavor = 'science') AND (sequence = 'DESI')"
 
     conn =  psycopg.connect(exp.dsn)
@@ -59,6 +55,9 @@ def desi_exposures_1night(night):
     cursor.close()
 
     conn.close()
+
+    if len(data) == 0:
+        print('NO DESI EXPOSURES FOUND FOR NIGHT ' + night)
 
     return data
 
@@ -110,6 +109,7 @@ def desi_exp_movie(_pc_index, expid, mjdmin, mjdmax, outdir='.',
     good = (_pc_index['MJD'] > mjdmin) & (_pc_index['MJD'] < mjdmax)
 
     if np.sum(good) == 0:
+        print('NO POINTING CAMERA IMAGES CORRESPONDING TO DESI EXPID ' + str(expid))
         return None
 
     pc_index = _pc_index[good]
