@@ -1888,6 +1888,7 @@ def pointing_camera_index(night, require_standard_exptime=True,
     flist = glob.glob(pattern)
 
     if len(flist) == 0:
+        print('NO POINTING CAMERA EXPOSURES FOR NIGHT ' + night)
         return None
 
     flist.sort()
