@@ -8,6 +8,7 @@ Satellite streak detection.
 from astride import Streak
 import time
 import pickle
+import os
 
 def streak_radec(streak, wcs):
     """
@@ -86,7 +87,8 @@ def detect_streaks(exp):
     dt = time.time() - t0
 
     print('Found ' + str(len(streaks)) + ' streaks')
-    print('Streak detection took ' + '{:.2f}'.format(dt) + ' seconds')
+    print('Streak detection took ' + '{:.2f}'.format(dt) + ' seconds ; ' +
+          os.path.basename(exp.fname_im))
 
     exp.streaks = streaks
 
