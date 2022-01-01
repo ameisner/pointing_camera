@@ -9,6 +9,7 @@ from astride import Streak
 import time
 import pickle
 import os
+import timeout_decorator
 
 def streak_radec(streak, wcs):
     """
@@ -35,6 +36,10 @@ def streak_radec(streak, wcs):
 
     streak['ra'] = ra
     streak['dec'] = dec
+
+class TookTooLongError(Exception):
+    """Exception for computation that has taken too long to run."""
+    pass
 
 def detect_streaks(exp):
     """
@@ -91,5 +96,28 @@ def detect_streaks(exp):
           os.path.basename(exp.fname_im))
 
     exp.streaks = streaks
+
+    return streaks
+
+# allow up to 10 seconds to finish, could revisit this value
+@timeout_decorator.timeout(10, timeout_exception=TookTooLongError)
+def detect_streaks_time_limit(exp):
+    """
+    Wrapper for streak detection with an execution time limit.
+
+    Parameters
+    ----------
+        exp : pointing_camera.exposure.PC_exposure
+            Pointing camera exposure object with detrended image available.
+
+    Returns
+    -------
+        streaks : list
+            List of streaks, each of which is a dictionary with data
+            defining one detected streak.
+
+    """
+
+    streaks = detect_streaks(exp)
 
     return streaks
