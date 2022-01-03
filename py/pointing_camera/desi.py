@@ -13,6 +13,9 @@ import numpy as np
 from pointing_camera.exposure import PC_exposure
 import os
 from multiprocessing import Pool
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+import glob
 
 def desi_exposures_1night(night):
     """
@@ -255,3 +258,109 @@ def one_pc_rendering(fname, dome_flag_ml=False, reqra=None, reqdec=None):
     im -= limits[0]
 
     return im
+
+def radec_to_petal_loc(ra_deg, dec_deg, reqra, reqdec):
+    """
+    Compute DESI petal location values for sky locations given a field center.
+
+    Parameters
+    ----------
+        ra_deg : numpy.ndarray
+            Set of RA values (in degrees) for which to compute the corresponding
+            DESI petal_loc values. Should have the same size as dec_deg.
+        dec_deg : numpy.ndarray
+            Set of Dec values (in degrees) for which to compute the
+            corresponding DESI petal_loc values. Should have the same
+            size as ra_deg.
+        reqra : float
+            DESI field center RA in degrees. Should be a scalar value.
+        reqdec : float
+            DESI field center Dec in degrees. Should be a scalar value.
+
+    Returns
+    -------
+        petal_loc : numpy.ndarray
+            Array of integer petal location values (0-9, inclusive) with
+            same number of elements as input ra_deg and dec_deg coordinate
+            lists.
+
+    Notes
+    -----
+        -1 is used as a dummy/placeholder value to indicate when a sky location
+        falls outside of the DESI FOV.
+
+    """
+
+    desi_fov_radius_deg = 1.6 # factor out this special number?
+
+    sc_center = SkyCoord(reqra*u.deg, reqdec*u.deg, frame='icrs')
+    sc = SkyCoord(ra_deg*u.deg, dec_deg*u.deg, frame='icrs')
+
+    pos_angle = sc_center.position_angle(sc).to(u.deg)
+
+    petal_loc = np.floor((np.mod(pos_angle + 180.0*u.deg + 18.0*u.deg, 360.0*u.deg))/36.0*u.deg).astype(int)
+
+    petal_loc = np.array(petal_loc)
+
+    ang_sep = sc_center.separation(sc)
+
+    petal_loc[ang_sep.deg > desi_fov_radius_deg] = -1
+
+    return petal_loc
+
+def movies_nightly_webpage(_dir):
+    """
+    Generate a nightly summary webpage displaying a grid of movie thumbnails.
+
+    Parameters
+    ----------
+        _dir : str
+            This should be one full directory path representing both the input
+            and output directory (same directory for both).
+
+    Notes
+    -----
+        Remember to handle the case of no movies for a night without crashing.
+        Writes a file called summary.html in the _dir directory.
+
+    """
+
+    if not os.path.exists(_dir):
+        return
+
+    flist = glob.glob(os.path.join(_dir, '*.gif'))
+
+    if len(flist) == 0:
+        return
+
+    flist.sort()
+
+    outname = os.path.join(_dir, 'summary.html')
+
+    lines = []
+    lines.append('<HTML>')
+    lines.append('<HEAD>')
+    lines.append('</HEAD>')
+    lines.append('')
+
+    for i,f in enumerate(flist):
+       if (i % 2) == 0:
+           lines.append('<tr>')
+       url = os.path.basename(f)
+       lines.append('<td align="center"><a href="' + url + \
+                    '"><img src="' + url + '"></a></td>')
+       if ((i % 2) != 0) or (i == (len(flist)-1)):
+           lines.append('</tr>')
+
+    lines.append('<table border="0" width="1020">')
+    lines.append('</table>')
+    lines.append('')
+    lines.append('</body>')
+    lines.append('')
+    lines.append('</HTML>')
+
+    f = open(outname, 'w')
+
+    f.writelines('\n'.join(lines))
+
+    f.close()

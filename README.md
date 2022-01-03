@@ -54,7 +54,7 @@ This produces the following output files:
     usage: pc_proc.py [-h] [--outdir OUTDIR] [--dont_write_detrended] [--skip_checkplot] [--nightly_subdir] [--send_redis] [--one_aper]
                       [--bg_sigclip] [--multiproc MULTIPROC] [--max_n_stars MAX_N_STARS] [--pm_corr] [--skip_flatfield]
 		      [--sci_inst_name SCI_INST_NAME] [--sci_fov_checkplot] [--check_tcs_motion] [--detect_streaks] [--plot_detrended]
-		      [--plot_streaks] [--plot_quiver] [--ml_dome_flag]
+		      [--plot_streaks] [--plot_quiver] [--ml_dome_flag] [--streak_time_limit]
                       fname_in
 
     run the pointing camera reduction pipeline on an exposure
@@ -87,6 +87,7 @@ This produces the following output files:
       --plot_streaks        overplot detected streaks on detrended image
       --plot_quiver         make and save quiver plot of centroid shifts
       --ml_dome_flag        use machine learning to flag dome vignetting
+      --streak_time_limit   place time limit on streak detection step
 
 # Redis telemetry
 

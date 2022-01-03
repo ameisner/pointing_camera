@@ -24,7 +24,8 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
             pm_corr=False, skip_flatfield=False, sci_inst_name='desi',
             sci_fov_checkplot=False, check_tcs_motion=False,
             max_zp_radius=None, detect_streaks=False, plot_detrended=False,
-            plot_streaks=False, plot_quiver=False, ml_dome_flag=False):
+            plot_streaks=False, plot_quiver=False, ml_dome_flag=False,
+            streak_time_limit=False):
     """
     Process one pointing camera image.
 
@@ -108,6 +109,10 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
         ml_dome_flag : bool, optional
             If True, use machine learning classifier to flag dome vignetting
             (otherwise a heuristic method is employed).
+        streak_time_limit : bool, optional
+            If True, time out at 10 seconds of streak detection. The purpose
+            of this option is to avoid falling behind the data stream during
+            real-time pipeline operation.
 
     """
 
@@ -148,8 +153,14 @@ def pc_proc(fname_in, outdir=None, dont_write_detrended=False,
                            max_zp_radius=max_zp_radius)
 
     if detect_streaks:
-    # probably want to put a timeout handler around this eventually
-        streaks = satellites.detect_streaks(exp)
+        if streak_time_limit:
+            try:
+                streaks = satellites.detect_streaks_time_limit(exp)
+            except satellites.TookTooLongError:
+                print('Streak detection took too long, bailing... [' + \
+                      os.path.basename(fname_in) + ']')
+        else:
+            streaks = satellites.detect_streaks(exp)
 
     if write_outputs:
         if not os.path.exists(outdir):
@@ -269,6 +280,10 @@ if __name__ == "__main__":
     parser.add_argument('--ml_dome_flag', default=False, action='store_true',
                         help="use machine learning to flag dome vignetting")
 
+    parser.add_argument('--streak_time_limit', default=False,
+                        action='store_true',
+                        help="place time limit on streak detection step")
+
     args = parser.parse_args()
 
     # basic checks on requested number of multiprocessing threads
@@ -290,4 +305,5 @@ if __name__ == "__main__":
             max_zp_radius=args.max_zp_radius,
             detect_streaks=args.detect_streaks,
             plot_detrended=args.plot_detrended, plot_streaks=args.plot_streaks,
-            plot_quiver=args.plot_quiver, ml_dome_flag=args.ml_dome_flag)
+            plot_quiver=args.plot_quiver, ml_dome_flag=args.ml_dome_flag,
+            streak_time_limit=args.streak_time_limit)
