@@ -15,6 +15,7 @@ import os
 from multiprocessing import Pool
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+import glob
 
 def desi_exposures_1night(night):
     """
@@ -306,3 +307,60 @@ def radec_to_petal_loc(ra_deg, dec_deg, reqra, reqdec):
     petal_loc[ang_sep.deg > desi_fov_radius_deg] = -1
 
     return petal_loc
+
+def movies_nightly_webpage(_dir):
+    """
+    Generate a nightly summary webpage displaying a grid of movie thumbnails.
+
+    Parameters
+    ----------
+        _dir : str
+            This should be one full directory path representing both the input
+            and output directory (same directory for both).
+
+    Notes
+    -----
+        Remember to handle the case of no movies for a night without crashing.
+        Writes a file called summary.html in the _dir directory.
+
+    """
+
+    if not os.path.exists(_dir):
+        return
+
+    flist = glob.glob(os.path.join(_dir, '*.gif'))
+
+    if len(flist) == 0:
+        return
+
+    flist.sort()
+
+    outname = os.path.join(_dir, 'summary.html')
+
+    lines = []
+    lines.append('<HTML>')
+    lines.append('<HEAD>')
+    lines.append('</HEAD>')
+    lines.append('')
+
+    for i,f in enumerate(flist):
+       if (i % 2) == 0:
+           lines.append('<tr>')
+       url = os.path.basename(f)
+       lines.append('<td align="center"><a href="' + url + \
+                    '"><img src="' + url + '"></a></td>')
+       if ((i % 2) != 0) or (i == (len(flist)-1)):
+           lines.append('</tr>')
+
+    lines.append('<table border="0" width="1020">')
+    lines.append('</table>')
+    lines.append('')
+    lines.append('</body>')
+    lines.append('')
+    lines.append('</HTML>')
+
+    f = open(outname, 'w')
+
+    f.writelines('\n'.join(lines))
+
+    f.close()
