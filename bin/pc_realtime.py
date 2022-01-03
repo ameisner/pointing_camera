@@ -95,7 +95,8 @@ def _reduce_new_files(flist_wcs, outdir='.', dont_send_redis=False):
         try:
             pipeline.pc_proc(f_fits, outdir=outdir, dont_write_detrended=True,
                              skip_checkplot=False, nightly_subdir=True, send_redis=(not dont_send_redis),
-                             one_aper=True, nmp=8, check_tcs_motion=True, max_zp_radius=1200)
+                             one_aper=True, nmp=8, check_tcs_motion=True, max_zp_radius=1200,
+                             detect_streaks=True)
         except:
             print('PROCESSING FAILURE: ' + f_fits)
 
@@ -236,6 +237,8 @@ if __name__ == "__main__":
 
     if args.veto_list is not None:
         _do_veto(args.veto_list)
+
+    print('PID = ' + str(os.getpid()))
 
     _watch(wait_seconds=args.wait_seconds, data_dir=args.data_dir,
            outdir=args.outdir, dont_send_redis=args.dont_send_redis,
