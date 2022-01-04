@@ -1926,3 +1926,44 @@ def pointing_camera_index(night, require_standard_exptime=True,
         t = t[t['EXPTIME_SECONDS'] == par['standard_exptime_seconds']]
 
     return t
+
+def dome_slit_edge_azel(domeaz):
+    """
+    Return list of (az, el) coordinates running along Mayall dome slit edges.
+
+
+    Parameters
+    ----------
+        domeaz : float
+            Dome azimuth in degrees. Should be a scalar in the
+            interval [0, 360).
+
+    Returns
+    -------
+        az : numpy.ndarray
+            List of azimuth coordinates in degrees along the Mayall dome slit
+            edges. Should be within the interval [0, 360).
+        el : numpy.ndarray
+            List of elevation values in degrees along the Mayall dome slit
+            edges.
+
+    Notes
+    -----
+        Based on D. Joyce's Domeplot.ipynb notebook.
+
+    """
+
+    x = np.arange(0, 90, 0.01) # degrees
+
+    rad2deg = 180.0/np.pi
+
+    # Semi-width of dome slit (dome crane rails) = 3962 mm
+    phi = rad2deg*np.arctan(3962/(15975*np.cos(np.radians(x))))
+
+    y1 = domeaz - phi
+    y2 = domeaz + phi
+
+    az = np.concatenate((y1, y2))
+    el = np.concatenate((x, x))
+
+    return az, el
