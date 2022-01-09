@@ -36,5 +36,6 @@ while True:
         if not os.path.exists(outdir):
             os.mkdir(outdir)
         desi.all_movies_1night(night, outdir=outdir, nmp=workers)
+        desi.movies_nightly_webpage(outdir)
 
     last_time = current_time
