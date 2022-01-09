@@ -45,7 +45,7 @@ def desi_exposures_1night(night):
     import psycopg2 as psycopg
     import psycopg2.extras
 
-    sql = "SELECT id, mjd_obs, night, exptime, reqra, reqdec, skyra, skydec, targtra, targtdec FROM exposure WHERE (night = " + night + ") AND (flavor = 'science') AND (sequence = 'DESI')"
+    sql = "SELECT id, mjd_obs, night, exptime, reqra, reqdec, skyra, skydec, targtra, targtdec FROM exposure WHERE (night = " + night + ") AND (flavor = 'science') AND ((sequence = 'DESI') OR (sequence = '_Split'))"
 
     conn =  psycopg.connect(exp.dsn)
 
