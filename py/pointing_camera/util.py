@@ -1966,4 +1966,7 @@ def dome_slit_edge_azel(domeaz):
     az = np.concatenate((y1, y2))
     el = np.concatenate((x, x))
 
+    az[az >= 360] -= 360.0
+    az[az < 0] += 360
+
     return az, el
