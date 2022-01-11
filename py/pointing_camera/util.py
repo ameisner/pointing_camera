@@ -24,6 +24,7 @@ from astropy.time import Time
 from multiprocessing import Pool
 from functools import lru_cache
 import matplotlib.pyplot as plt
+from scipy.spatial import KDTree
 
 def get_wcs_filename(fname_im, verify=True):
     """
@@ -1319,17 +1320,7 @@ def pc_phot(exp, one_aper=False, bg_sigclip=False, nmp=None, max_n_stars=3000,
 
     print('Attempting to flag wrong centroids...')
     t0 = time.time()
-    if nmp is None:
-        cat = flag_wrong_centroids(cat, cat)
-    else:
-        p =  Pool(nmp)
-        parts = split_table(cat, nmp)
-        args = [(_cat, cat) for _cat in parts]
-        cats = p.starmap(flag_wrong_centroids, args)
-        cat = vstack(cats)
-        p.close()
-        p.join()
-
+    cat = flag_wrong_centroids_kdtree(cat)
     dt = time.time()-t0
     print('flagging wrong centroids took ', '{:.3f}'.format(dt), ' seconds')
 
@@ -1970,3 +1961,36 @@ def dome_slit_edge_azel(domeaz):
     az[az < 0] += 360
 
     return az, el
+
+def flag_wrong_centroids_kdtree(cat):
+    """
+    Flag cases of a centroid wandering off to an entirely different star.
+
+    Parameters
+    ----------
+        cat : astropy.table.table.Table
+            Table with columns including xcentroid, ycentroid, MY_BSC_ID.
+
+    Returns
+    -------
+        cat : astropy.table.table.Table
+            Input catalog cat but with an added column called wrong_source_centroid,
+            which has a value of 1 (centroid has wandered too far) or 0.
+
+    Notes
+    -----
+        The idea is that using a KDTree should make this fast...
+
+    """
+
+    n = len(cat)
+
+    tree = KDTree(np.c_[cat['x_gaia_guess'], cat['y_gaia_guess']])
+
+    dists, inds = tree.query(np.array((cat['xcentroid'],cat['ycentroid'])).T, k=1)
+
+    inds = inds.reshape(n)
+
+    cat['wrong_source_centroid'] = (inds != np.arange(n)).astype(int)
+
+    return cat
