@@ -7,7 +7,6 @@ Satellite streak detection.
 
 from astride import Streak
 import time
-import pickle
 import os
 import timeout_decorator
 
